@@ -37,9 +37,11 @@ set hidden
 set nowrap
 
 " Mappings
-tnoremap <Esc> <C-\><C-n> 
+tnoremap <Esc> <C-\><C-n>
 nnoremap <silent> <C-Tab> :bnext<CR>
 inoremap <C-space> <Esc>
+noremap <C-i> /
+noremap <silent> <Esc> :noh<CR>
 
 " Mappings - Copy/Pase
 vnoremap <a-y> "*y
