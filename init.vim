@@ -49,6 +49,10 @@ vnoremap <a-y> "*y
 nnoremap <a-p> "*p
 cnoremap <a-c>p <C-r>"
 
+" Mappings - Windows
+nnoremap <C-Right> :vsplit<CR>
+nnoremap <C-Up> :split<CR>
+
 " Mappings - Auto close
 inoremap ( ()<Left>
 inoremap { {}<Left>
