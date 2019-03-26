@@ -9,6 +9,7 @@ let g:ctrlp_map = '<c-p>'
 let g:ctrlp_cmd = 'CtrlP'
 let g:ctrlp_working_path_mode = 'ra'
 let g:ctrlp_user_command = 'fd --type f --color never "" %s'
+let g:ctrlp_root_markers= ['.p4ignore', '.git']
 set wildignore+=*\\tmp\\*,*.swp,*.zip,*.exe
 
 " Theme
@@ -39,13 +40,13 @@ set nowrap
 " Mappings
 tnoremap <Esc> <C-\><C-n>
 nnoremap <silent> <C-Tab> :bnext<CR>
-inoremap <C-space> <Esc>
-noremap <C-i> /
+inoremap <A-i> <Esc>
+noremap <C-i> :noh<CR>/
 noremap <silent> <Esc> :noh<CR>
 
 " Mappings - Copy/Pase
 vnoremap <a-y> "*y
-vnoremap <a-p> "*p
+nnoremap <a-p> "*p
 cnoremap <a-c>p <C-r>"
 
 " Mappings - Auto close
