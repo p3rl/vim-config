@@ -2,14 +2,16 @@ call plug#begin('~\nvim\plugged')
 Plug 'lifepillar/vim-solarized8'
 Plug 'jremmen/vim-ripgrep'
 Plug 'ctrlpvim/ctrlp.vim'
+Plug 'morhetz/gruvbox'
 call plug#end()
 
 " Rg
-set grepprg=rg\ --vimgrep\ --no-heading
-set grepformat=%f:%l:%m
+set grepprg=rg\ --vimgrep\ -tcpp
+"set grepformat=%f:%l:%m
 
 " CtrlP
 let g:ctrlp_by_filename = 1
+let g:ctrlp_use_caching = 1
 let g:ctrlp_max_files = 0
 let g:ctrlp_map = '<c-p>'
 let g:ctrlp_cmd = 'CtrlP'
@@ -21,7 +23,7 @@ set wildignore+=*\\tmp\\*,*.swp,*.zip,*.exe
 " Theme
 set termguicolors
 set background=dark
-colorscheme solarized8
+colorscheme gruvbox
 
 " Editing settings
 syntax enable
@@ -48,6 +50,7 @@ set noswapfile
 set nobackup
 set nowb
 set cursorline
+set autoread
 
 " Commands
 command! CopyPath :let @+= expand("%:p")
@@ -80,7 +83,9 @@ nnoremap <C-Up> :split<CR>
 noremap <C-Down> <C-w>=
 
 " Mappings - Auto close
-inoremap ( ()<Left>
+" inoremap ( ()<Left>
 inoremap { {}<Left>
 inoremap [ []<Left>
 
+" Mappings - CTag
+noremap <F12> byw:tag<space><C-r>" <CR>
