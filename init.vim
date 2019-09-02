@@ -3,6 +3,9 @@ Plug 'lifepillar/vim-solarized8'
 Plug 'jremmen/vim-ripgrep'
 Plug 'ctrlpvim/ctrlp.vim'
 Plug 'morhetz/gruvbox'
+Plug 'srcery-colors/srcery-vim'
+Plug 'itchyny/lightline.vim'
+Plug 'tpope/vim-vinegar'
 call plug#end()
 
 " Rg
@@ -21,9 +24,14 @@ let g:ctrlp_root_markers= ['.p4ignore.txt', '.git']
 set wildignore+=*\\tmp\\*,*.swp,*.zip,*.exe
 
 " Theme
+let g:lightline = {
+      \ 'colorscheme': 'solarized',
+      \ }
 set termguicolors
-set background=dark
-colorscheme gruvbox
+set background=light
+colorscheme solarized8_high
+"colorscheme gruvbox
+set guifont=Consolas:h10
 
 " Editing settings
 syntax enable
@@ -54,14 +62,24 @@ set autoread
 
 " Commands
 command! CopyPath :let @+= expand("%:p")
+command! PrintPath echo expand("%:p")
+command! PFourOpen !p4 open %
+command! ReloadBuffer :e %
+command! ForceReloadBuffer :e! %
     
 " Mappings
 tnoremap <Esc> <C-\><C-n>
 inoremap <C-space> <Esc>
-noremap <C-i> :noh<CR>/
 noremap <silent> <Esc> :noh<CR>
 noremap <F1> :CtrlP .<CR>
 cnoremap <C-space> <Esc>
+nnoremap <Tab> /
+nnoremap <F9> :PrintPath <CR>
+nnoremap <F10> :CopyPath <CR>
+nnoremap <F11> :ReloadBuffer <CR>
+nnoremap <C-F11> :ReloadBuffer <CR>
+nnoremap <S-k> kzz
+nnoremap <S-j> jzz
 
 " Mappings - Move
 nnoremap <S-h> 0
