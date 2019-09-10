@@ -6,10 +6,11 @@ Plug 'morhetz/gruvbox'
 Plug 'srcery-colors/srcery-vim'
 Plug 'itchyny/lightline.vim'
 Plug 'tpope/vim-vinegar'
+"Plug 'nixprime/cpsm'
 call plug#end()
 
 " Rg
-set grepprg=rg\ --vimgrep\ -tcpp
+set grepprg=rg\--vimgrep
 "set grepformat=%f:%l:%m
 
 " CtrlP
@@ -23,6 +24,7 @@ let g:ctrlp_user_command = 'fd -e h -e hpp -e c -e cpp --type f --color never ""
 let g:ctrlp_root_markers= ['.p4ignore.txt', '.git']
 set wildignore+=*\\tmp\\*,*.swp,*.zip,*.exe
 
+"//////////////////////////////////////////////////////////////////////////////
 " Theme
 let g:lightline = {
       \ 'colorscheme': 'solarized',
@@ -30,9 +32,14 @@ let g:lightline = {
 set termguicolors
 set background=light
 colorscheme solarized8_high
-"colorscheme gruvbox
-set guifont=Consolas:h10
+let g:solarized_italics=0
+"set background=light
+"colorscheme srcery
+"set guifont=Consolas:h10
+set guifont=Fira\ Code\ Medium:h10
+"set guifont=Fantasque\ Sans\ Mono\:h11
 
+"//////////////////////////////////////////////////////////////////////////////
 " Editing settings
 syntax enable
 set encoding=utf-8
@@ -44,6 +51,7 @@ set autoindent
 set smartindent
 set smarttab
 
+"//////////////////////////////////////////////////////////////////////////////
 " General settings
 set splitright
 set showmatch
@@ -60,13 +68,17 @@ set nowb
 set cursorline
 set autoread
 
+"//////////////////////////////////////////////////////////////////////////////
 " Commands
 command! CopyPath :let @+= expand("%:p")
 command! PrintPath echo expand("%:p")
 command! PFourOpen !p4 open %
+command! P4o !p4 open %
 command! ReloadBuffer :e %
 command! ForceReloadBuffer :e! %
+command! EditVimConfig :e ~\AppData\Local\Nvim\init.vim
     
+"//////////////////////////////////////////////////////////////////////////////
 " Mappings
 tnoremap <Esc> <C-\><C-n>
 inoremap <C-space> <Esc>
@@ -77,9 +89,13 @@ nnoremap <Tab> /
 nnoremap <F9> :PrintPath <CR>
 nnoremap <F10> :CopyPath <CR>
 nnoremap <F11> :ReloadBuffer <CR>
-nnoremap <C-F11> :ReloadBuffer <CR>
+nnoremap <C-F11> :ForceReloadBuffer <CR>
+nnoremap <C-F1> :EditVimConfig <CR>
 nnoremap <S-k> kzz
 nnoremap <S-j> jzz
+
+" Mappings - Perforce
+nnoremap <S-F5> :PFourOpen <CR>
 
 " Mappings - Move
 nnoremap <S-h> 0
@@ -89,7 +105,7 @@ nnoremap <S-l> $
 vnoremap <A-y> "*y
 nnoremap <A-p> "*p
 cnoremap <A-c>p <C-r>"
-cnoremap <C-p> <C-r>*
+cnoremap <A-p> <C-r>*
 
 " Mappings - Buffers
 nnoremap <silent> <C-j> :bprev<CR>
