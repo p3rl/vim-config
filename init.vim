@@ -1,27 +1,15 @@
 call plug#begin('~\nvim\plugged')
 Plug 'lifepillar/vim-solarized8'
 Plug 'jremmen/vim-ripgrep'
-Plug 'ctrlpvim/ctrlp.vim'
-Plug 'morhetz/gruvbox'
-Plug 'srcery-colors/srcery-vim'
 Plug 'itchyny/lightline.vim'
 Plug 'tpope/vim-vinegar'
-"Plug 'nixprime/cpsm'
+Plug 'junegunn/fzf'
 call plug#end()
 
 " Rg
 set grepprg=rg\--vimgrep
 "set grepformat=%f:%l:%m
 
-" CtrlP
-let g:ctrlp_by_filename = 1
-let g:ctrlp_use_caching = 1
-let g:ctrlp_max_files = 0
-let g:ctrlp_map = '<c-p>'
-let g:ctrlp_cmd = 'CtrlP'
-let g:ctrlp_working_path_mode = 'w'
-let g:ctrlp_user_command = 'fd -e h -e hpp -e c -e cpp --type f --color never "" %s'
-let g:ctrlp_root_markers= ['.p4ignore.txt', '.git']
 set wildignore+=*\\tmp\\*,*.swp,*.zip,*.exe
 
 "//////////////////////////////////////////////////////////////////////////////
@@ -68,12 +56,7 @@ let g:lightline = {
       \ }
 colorscheme solarized8_high
 let g:solarized_italics=0
-set guifont=Fira\ Code\ Medium:h10
-
-"set background=light
-"colorscheme srcery
-"set guifont=Consolas:h10
-"set guifont=Fantasque\ Sans\ Mono\:h11
+"set guifont=Fira\ Code\ Medium:h10
 
 "//////////////////////////////////////////////////////////////////////////////
 " Editing settings
@@ -118,9 +101,9 @@ command! EditVimConfig :e ~\AppData\Local\Nvim\init.vim
 " Mappings
 tnoremap <Esc> <C-\><C-n>
 inoremap <C-space> <Esc>
-inoremap <S-space> <Esc>
+"inoremap <S-space> <Esc>
 noremap <silent> <Esc> :noh<CR>
-noremap <F1> :CtrlP .<CR>
+noremap <F1> :FZF .<CR>
 cnoremap <C-space> <Esc>
 nnoremap <F9> :PrintPath <CR>
 nnoremap <F10> :CopyPath <CR>
