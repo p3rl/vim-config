@@ -4,13 +4,9 @@ Plug 'jremmen/vim-ripgrep'
 Plug 'itchyny/lightline.vim'
 Plug 'tpope/vim-vinegar'
 Plug 'junegunn/fzf'
+Plug 'ayu-theme/ayu-vim'
+Plug 'arcticicestudio/nord-vim'
 call plug#end()
-
-" Rg
-set grepprg=rg\--vimgrep
-"set grepformat=%f:%l:%m
-
-set wildignore+=*\\tmp\\*,*.swp,*.zip,*.exe
 
 "//////////////////////////////////////////////////////////////////////////////
 " Perforce
@@ -50,13 +46,53 @@ endfunction
 "//////////////////////////////////////////////////////////////////////////////
 " Theme
 set termguicolors
-set background=light
-let g:lightline = {
-      \ 'colorscheme': 'solarized',
-      \ }
-colorscheme solarized8_high
+set background=dark
+let ayucolor="mirage"
+"colorscheme solarized8_high
+colorscheme nord
 let g:solarized_italics=0
 "set guifont=Fira\ Code\ Medium:h10
+
+"//////////////////////////////////////////////////////////////////////////////
+" FZF
+let $FZF_DEFAULT_OPTS = '--layout=reverse'
+
+let g:fzf_layout = { 'window': 'call FloatingFZF()' }
+
+function! FloatingFZF()
+  let buf = nvim_create_buf(v:false, v:true)
+  let height = float2nr(&lines * 0.3)
+  let width = float2nr(&columns * 0.6)
+  let horizontal = float2nr((&columns - width) / 2)
+  let vertical = 0
+
+  let opts = {
+        \ 'relative': 'editor',
+        \ 'row': vertical,
+        \ 'col': horizontal,
+        \ 'width': width,
+        \ 'height': height
+        \ }
+
+  call nvim_open_win(buf, v:true, opts)
+endfunction
+
+"//////////////////////////////////////////////////////////////////////////////
+" Lightline
+function! LightlineFileNameHead()
+	return expand("%:h")
+endfunction
+
+let g:lightline = {
+      \ 'colorscheme': 'ayu',
+      \ 'active': {
+      \   'left': [ [ 'mode', 'paste' ],
+      \             [ 'readonly', 'filename', 'modified', 'filenamehead' ] ]
+      \ },
+      \ 'component_function': {
+      \   'filenamehead': 'LightlineFileNameHead'
+      \ },
+      \ }
 
 "//////////////////////////////////////////////////////////////////////////////
 " Editing settings
@@ -87,6 +123,9 @@ set nobackup
 set nowb
 set cursorline
 set autoread
+set listchars=tab::.
+set wildignore+=*\\tmp\\*,*.swp,*.zip,*.exe
+let g:netrw_fastbrowse = 0
 
 "//////////////////////////////////////////////////////////////////////////////
 " Commands
@@ -96,20 +135,23 @@ command! P4o !p4 open %
 command! ReloadBuffer :e %
 command! ForceReloadBuffer :e! %
 command! EditVimConfig :e ~\AppData\Local\Nvim\init.vim
+command! EditGVimConfig :e ~\AppData\Local\Nvim\ginit.vim
     
 "//////////////////////////////////////////////////////////////////////////////
 " Mappings
 tnoremap <Esc> <C-\><C-n>
 inoremap <C-space> <Esc>
+inoremap <C-return> <Esc>
 "inoremap <S-space> <Esc>
 noremap <silent> <Esc> :noh<CR>
-noremap <F1> :FZF .<CR>
+noremap <C-p> :FZF .<CR>
 cnoremap <C-space> <Esc>
 nnoremap <F9> :PrintPath <CR>
 nnoremap <F10> :CopyPath <CR>
 nnoremap <F11> :ReloadBuffer <CR>
 nnoremap <C-F11> :ForceReloadBuffer <CR>
 nnoremap <C-F12> :EditVimConfig <CR>
+nnoremap <S-F12> :EditGVimConfig <CR>
 nnoremap <S-k> kzz
 nnoremap <S-j> jzz
 
@@ -122,11 +164,12 @@ map <silent> <S-F6> :echo <SID>P4FileChanges()<CR>
 nnoremap <S-h> 0
 nnoremap <S-l> $
 
-" Mappings - Copy/Paste
+" Mappings - Copy/Paste/Save
 vnoremap <A-y> "*y
 nnoremap <A-p> "*p
 cnoremap <A-c>p <C-r>"
 cnoremap <A-p> <C-r>*
+nnoremap <C-s> :w<Cr>
 
 " Mappings - Buffers
 nnoremap <silent> <C-j> :bprev<CR>
