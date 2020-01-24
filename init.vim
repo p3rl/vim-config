@@ -1,11 +1,10 @@
 call plug#begin('~\nvim\plugged')
 Plug 'lifepillar/vim-solarized8'
-Plug 'jremmen/vim-ripgrep'
+Plug 'arcticicestudio/nord-vim'
 Plug 'itchyny/lightline.vim'
 Plug 'tpope/vim-vinegar'
 Plug 'junegunn/fzf'
-Plug 'ayu-theme/ayu-vim'
-Plug 'arcticicestudio/nord-vim'
+Plug 'junegunn/fzf.vim'
 call plug#end()
 
 "//////////////////////////////////////////////////////////////////////////////
@@ -15,7 +14,7 @@ function! s:P4Cmd(sCmd)
     let sReturn = ""
     let sCommandLine = "p4 " . a:sCmd
     let v:errmsg = ""
-    let sReturn = system(sCommandLine)
+    return system(sCommandLine)
     if v:errmsg == ""
         if match(sReturn, "Perforce password (P4PASSWD) invalid or unset\.") != -1
             let v:errmsg = "Not logged in to Perforce."
@@ -43,15 +42,13 @@ function! s:P4FileRevert()
 	return s:P4BufferCmd("revert")
 endfunction
 
-"//////////////////////////////////////////////////////////////////////////////
-" Theme
-set termguicolors
-set background=dark
-let ayucolor="mirage"
-"colorscheme solarized8_high
-colorscheme nord
-let g:solarized_italics=0
-"set guifont=Fira\ Code\ Medium:h10
+function! P4FileLog()
+	let filelog = s:P4BufferCmd("filelog")
+	vsplit P4 FileLog
+	normal! ggdG
+    setlocal buftype=nofile
+	call append(0, split(filelog, '\v\n'))
+endfunction
 
 "//////////////////////////////////////////////////////////////////////////////
 " FZF
@@ -84,7 +81,7 @@ function! LightlineFileNameHead()
 endfunction
 
 let g:lightline = {
-      \ 'colorscheme': 'ayu',
+      \ 'colorscheme': 'nord',
       \ 'active': {
       \   'left': [ [ 'mode', 'paste' ],
       \             [ 'readonly', 'filename', 'modified', 'filenamehead' ] ]
@@ -95,6 +92,13 @@ let g:lightline = {
       \ }
 
 "//////////////////////////////////////////////////////////////////////////////
+" Theme settings
+set termguicolors
+set background=light
+"colorscheme solarized8_high
+colorscheme nord
+let g:solarized_italics=0
+
 " Editing settings
 syntax enable
 set encoding=utf-8
@@ -125,26 +129,29 @@ set cursorline
 set autoread
 set listchars=tab::.
 set wildignore+=*\\tmp\\*,*.swp,*.zip,*.exe
+set grepprg=findstr\ /s\ /n
+set scrolloff=5
 let g:netrw_fastbrowse = 0
 
 "//////////////////////////////////////////////////////////////////////////////
 " Commands
+command! -nargs=+ G execute 'silent grep' <q-args> | copen | redraw!
 command! CopyPath :let @+= expand("%:p")
 command! PrintPath echo expand("%:p")
-command! P4o !p4 open %
 command! ReloadBuffer :e %
 command! ForceReloadBuffer :e! %
 command! EditVimConfig :e ~\AppData\Local\Nvim\init.vim
 command! EditGVimConfig :e ~\AppData\Local\Nvim\ginit.vim
+"command! -bar -bang -nargs=? -complete=buffer Buffers  call fzf#vim#buffers(<q-args>, <bang>0)
     
 "//////////////////////////////////////////////////////////////////////////////
 " Mappings
 tnoremap <Esc> <C-\><C-n>
 inoremap <C-space> <Esc>
 inoremap <C-return> <Esc>
-"inoremap <S-space> <Esc>
 noremap <silent> <Esc> :noh<CR>
 noremap <C-p> :FZF .<CR>
+noremap <C-Tab> :Buffers<CR>
 cnoremap <C-space> <Esc>
 nnoremap <F9> :PrintPath <CR>
 nnoremap <F10> :CopyPath <CR>
@@ -154,6 +161,18 @@ nnoremap <C-F12> :EditVimConfig <CR>
 nnoremap <S-F12> :EditGVimConfig <CR>
 nnoremap <S-k> kzz
 nnoremap <S-j> jzz
+nnoremap <silent> <F1> :copen<CR>
+nnoremap <silent> <S-F1> :close<CR>
+
+" Mappings - Grep
+nnoremap gw :vim <cword> %<CR>:copen<CR>
+nnoremap Gw :G <cword> *.cpp *.h<CR>
+
+" Mappings - Quickfix
+nnoremap <silent><C-w>u :copen<CR>
+nnoremap <silent><C-w>i :cclose<CR>
+nnoremap <silent><A-j> :cn<CR>
+nnoremap <silent><A-k> :cp<CR>
 
 " Mappings - Perforce
 map <silent> <S-F5> :echo <SID>P4FileOpen()<CR>
@@ -176,8 +195,6 @@ nnoremap <silent> <C-j> :bprev<CR>
 nnoremap <silent> <C-k> :bnext<CR>
 
 " Mappings - Windows
-nnoremap <C-Right> :vsplit<CR>
-nnoremap <C-Up> :split<CR>
 noremap <C-Down> <C-w>=
 
 " Mappings - Auto close
