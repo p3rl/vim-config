@@ -20,43 +20,6 @@ let s_ue_buf_id = 0
 let s:ue_ubt_job_id = 0
 let s:ue_ubt_running = 0
 
-function! s:is_ue_engine_dir(dir)
-	return filereadable(expand(a:dir . '\' . s:ue_relative_path_to_run_uat))
-endfunction
-
-function! s:get_uat_args(project, platform, configuration)
-	return s:ue_build_args
-		\ . ' -Project=' . a:project
-		\ . ' -Platform=' . a:platform
-		\ . ' -Configuration=' . a:configuration 
-endfunction
-
-function! s:get_ubt_args(project, platform, configuration)
-	return a:project . ' ' . a:platform . ' ' . a:configuration
-endfunction
-
-function! s:get_current_project()
-	if s:ue_current_project_id != -1
-		return s:ue_projects[s:ue_current_project_id]
-	endif
-endfunction
-
-function! s:get_project_by_name(project_name)
-	for l:project in s:ue_projects
-		if l:project.name ==? project_namne
-			return l:project
-		endif
-	endfor
-endfunction
-
-function! s:get_project_build_target(project, target)
-	for l:build_target in a:project.build_targets
-		if l:build_target =~ a:target
-			return l:build_target
-		endif
-	endfor
-endfunction
-
 function! s:on_stdout(job_id, data, event_type)
 	if a:job_id == s:ue_ubt_job_id 
 		for line in a:data
@@ -95,6 +58,36 @@ function! s:on_exit(jobid, data, event)
 	let s:ue_ubt_running = 0
 endfunction
 
+function! s:is_ue_engine_dir(dir)
+	return filereadable(expand(a:dir . '\' . s:ue_relative_path_to_run_uat))
+endfunction
+
+function! s:get_ubt_args(project, platform, configuration)
+	return a:project . ' ' . a:platform . ' ' . a:configuration
+endfunction
+
+function! s:get_current_project()
+	if s:ue_current_project_id != -1
+		return s:ue_projects[s:ue_current_project_id]
+	endif
+endfunction
+
+function! s:get_project_by_name(project_name)
+	for l:project in s:ue_projects
+		if l:project.name ==? project_namne
+			return l:project
+		endif
+	endfor
+endfunction
+
+function! s:get_project_build_target(project, target)
+	for l:build_target in a:project.build_targets
+		if l:build_target =~ a:target
+			return l:build_target
+		endif
+	endfor
+endfunction
+
 function! ue#start_build()
 	if s:ue_ubt_running
 		echo 'UE: UBT already running...'
@@ -129,7 +122,7 @@ function! ue#start_build()
 	let s:ue_ubt_running = s:ue_ubt_job_id != 0
 endfunction
 
-function! ue#set_target(project, platform, configuration)
+function! s:set_target(project, platform, configuration)
 	let s:project = a:project
 	let s:platform = a:platform
 	if strlen(s:platform) == 0
@@ -246,7 +239,7 @@ function! ue#build(target, platform, configuration)
 	let l:target = s:get_project_build_target(l:project, a:target)
 
 	if strlen(l:target) != 0
-		call ue#set_target(l:target, a:platform, a:configuration)
+		call s:set_target(l:target, a:platform, a:configuration)
 		call ue#start_build()
 	endif
 
@@ -254,7 +247,6 @@ endfunction
 
 "//////////////////////////////////////////////////////////////////////////////
 " Commands
-command! -nargs=* UEsettarget call ue#set_target(<f-args>)
 command! -nargs=+ UEinit call ue#init(<f-args>)
 command! -nargs=1 UEaddproject call ue#add_project(<q-args>)
 command! -nargs=? UEproject call ue#set_project(<q-args>)
@@ -262,4 +254,3 @@ command! -nargs=* UEbuild call ue#build(<f-args>)
 command! -nargs=0 UEstartbuild call ue#start_build()
 
 call ue#try_init()
-"call ue#settarget('ShooterGameEditor', 'Win64', 'Development')
