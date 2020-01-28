@@ -1,6 +1,7 @@
 call plug#begin('~\nvim\plugged')
 Plug 'lifepillar/vim-solarized8'
 Plug 'arcticicestudio/nord-vim'
+"Plug 'relastle/bluewery.vim'
 Plug 'itchyny/lightline.vim'
 Plug 'tpope/vim-vinegar'
 Plug 'junegunn/fzf'
@@ -44,10 +45,18 @@ endfunction
 
 function! P4FileLog()
 	let filelog = s:P4BufferCmd("filelog")
+	let lines = split(filelog, '\v\n')
+	let changes = lines[1: -1]
+
 	vsplit P4 FileLog
 	normal! ggdG
     setlocal buftype=nofile
-	call append(0, split(filelog, '\v\n'))
+
+	for line in changes
+		let tokens = split(line)
+		let chr = tokens[1][1]
+		call append(0, chr)
+	endfor
 endfunction
 
 "//////////////////////////////////////////////////////////////////////////////
@@ -75,6 +84,16 @@ function! FloatingFZF()
 endfunction
 
 "//////////////////////////////////////////////////////////////////////////////
+" Theme settings
+set termguicolors
+set background=dark
+colorscheme nord
+"colorscheme solarized8_high
+"colorscheme bluewery
+let g:solarized_italics=0
+let g:nord_italic = 1
+
+"//////////////////////////////////////////////////////////////////////////////
 " Lightline
 function! LightlineFileNameHead()
 	return expand("%:h")
@@ -92,12 +111,11 @@ let g:lightline = {
       \ }
 
 "//////////////////////////////////////////////////////////////////////////////
-" Theme settings
-set termguicolors
-set background=light
-"colorscheme solarized8_high
-colorscheme nord
-let g:solarized_italics=0
+" UE
+let g:ue_default_projects = [
+	\ 'Samples\Games\ShooterGame\ShooterGame.uproject',
+	\ 'FortniteGame\FortniteGame.uproject'
+	\]
 
 " Editing settings
 syntax enable
@@ -142,7 +160,8 @@ command! ReloadBuffer :e %
 command! ForceReloadBuffer :e! %
 command! EditVimConfig :e ~\AppData\Local\Nvim\init.vim
 command! EditGVimConfig :e ~\AppData\Local\Nvim\ginit.vim
-"command! -bar -bang -nargs=? -complete=buffer Buffers  call fzf#vim#buffers(<q-args>, <bang>0)
+
+nnoremap <F5> :UEbuild<CR>
     
 "//////////////////////////////////////////////////////////////////////////////
 " Mappings
@@ -159,14 +178,16 @@ nnoremap <F11> :ReloadBuffer <CR>
 nnoremap <C-F11> :ForceReloadBuffer <CR>
 nnoremap <C-F12> :EditVimConfig <CR>
 nnoremap <S-F12> :EditGVimConfig <CR>
+nnoremap <A-F12> :so % <CR>
 nnoremap <S-k> kzz
 nnoremap <S-j> jzz
 nnoremap <silent> <F1> :copen<CR>
 nnoremap <silent> <S-F1> :close<CR>
+nnoremap n nzz
+nnoremap N Nzz
 
 " Mappings - Grep
 nnoremap gw :vim <cword> %<CR>:copen<CR>
-nnoremap Gw :G <cword> *.cpp *.h<CR>
 
 " Mappings - Quickfix
 nnoremap <silent><C-w>u :copen<CR>
@@ -204,3 +225,12 @@ inoremap [ []<Left>
 
 " Mappings - CTag
 noremap <F12> byw:tag<space><C-r>" <CR>
+
+" Mappings - Windows
+nnoremap <silent><A-Up> :resize +1<CR>
+nnoremap <silent><A-Down> :resize -1<CR>
+nnoremap <silent><A-Left> :vertical resize -1<CR>
+nnoremap <silent><A-Right> :vertical resize +1<CR>
+
+" Mappings - Windows
+nnoremap <F5> :UEstartbuild<CR>
