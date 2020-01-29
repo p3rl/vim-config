@@ -50,12 +50,18 @@ function! s:on_stdout(job_id, data, event_type)
 	endif
 endfunction
 
-function! s:on_stderr(jobid, data, event)
-	let s:ue_ubt_running = 0
+function! s:on_stderr(job_id, data, event)
+	if a:job_id == s:ue_ubt_job_id
+		let s:ue_ubt_running = 0
+		let s:ue_ubt_job_id = 0
+	endif
 endfunction
 
-function! s:on_exit(jobid, data, event)
-	let s:ue_ubt_running = 0
+function! s:on_exit(job_id, data, event)
+	if a:job_id == s:ue_ubt_job_id
+		let s:ue_ubt_running = 0
+		let s:ue_ubt_job_id = 0
+	endif
 endfunction
 
 function! s:is_ue_engine_dir(dir)
@@ -63,7 +69,7 @@ function! s:is_ue_engine_dir(dir)
 endfunction
 
 function! s:get_ubt_args(project, platform, configuration)
-	return a:project . ' ' . a:platform . ' ' . a:configuration
+	return a:project . ' ' . a:platform . ' ' . a:configuration . ' -Progress -NoLog'
 endfunction
 
 function! s:get_current_project()
@@ -88,15 +94,34 @@ function! s:get_project_build_target(project, target)
 	endfor
 endfunction
 
+function! s:set_target(project, platform, configuration)
+	let s:project = a:project
+	let s:platform = a:platform
+	if strlen(s:platform) == 0
+		s:platform = 'Win64'
+	endif
+	let s:configuration = a:configuration
+	if strlen(s:configuration) == 0
+		s:configuration = 'Development'
+	endif
+endfunction
+
+"//////////////////////////////////////////////////////////////////////////////
+" Public API
+
 function! ue#start_build()
+	if strlen(s:project) == 0
+		echo '[UE]: No active build target'
+	endif
+
 	if s:ue_ubt_running
-		echo 'UE: UBT already running...'
+		echo '[UE]: Unreal Build Tool already running...'
 		return
 	endif
 
 	let l:build_args = s:get_ubt_args(s:project, s:platform, s:configuration)
 	let l:job_cmd = s:ue_ubt_cmd . ' ' . l:build_args
-	echo 'UE: ' . l:job_cmd
+	echo '[UE]: => ' . l:job_cmd
 
 	" Clear quickfix
 	call setqflist([])
@@ -122,15 +147,9 @@ function! ue#start_build()
 	let s:ue_ubt_running = s:ue_ubt_job_id != 0
 endfunction
 
-function! s:set_target(project, platform, configuration)
-	let s:project = a:project
-	let s:platform = a:platform
-	if strlen(s:platform) == 0
-		s:platform = 'Win64'
-	endif
-	let s:configuration = a:configuration
-	if strlen(s:configuration) == 0
-		s:configuration = 'Development'
+function! ue#cancel_build()
+	if s:ue_ubt_running != 0 && s:ue_ubt_job_id != 0
+		call jobstop(s:ue_ubt_job_id)
 	endif
 endfunction
 
@@ -252,5 +271,6 @@ command! -nargs=1 UEaddproject call ue#add_project(<q-args>)
 command! -nargs=? UEproject call ue#set_project(<q-args>)
 command! -nargs=* UEbuild call ue#build(<f-args>)
 command! -nargs=0 UEstartbuild call ue#start_build()
+command! -nargs=0 UEcancelbuild call ue#cancel_build()
 
 call ue#try_init()

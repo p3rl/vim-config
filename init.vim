@@ -85,6 +85,7 @@ endfunction
 
 "//////////////////////////////////////////////////////////////////////////////
 " Theme settings
+language en
 set termguicolors
 set background=dark
 colorscheme nord
@@ -114,7 +115,6 @@ let g:lightline = {
 " UE
 let g:ue_default_projects = [
 	\ 'Samples\Games\ShooterGame\ShooterGame.uproject',
-	\ 'FortniteGame\FortniteGame.uproject'
 	\]
 
 " Editing settings
@@ -147,13 +147,15 @@ set cursorline
 set autoread
 set listchars=tab::.
 set wildignore+=*\\tmp\\*,*.swp,*.zip,*.exe
-set grepprg=findstr\ /s\ /n
+"set grepprg=findstr\ /s\ /n
+set grepprg=rg.exe\ --type-add\ \"bat:*.bat\"\ --type-add\ \"ini:*.ini\"\ -tbat\ -tini\ -tc\ -tcpp\ -tcs\ -tpy\ -tlua\ --vimgrep
+"autocmd QuickFixCmdPost *grep* cwindow 20
 set scrolloff=5
 let g:netrw_fastbrowse = 0
 
 "//////////////////////////////////////////////////////////////////////////////
 " Commands
-command! -nargs=+ G execute 'silent grep' <q-args> | copen | redraw!
+command! -nargs=+ G execute 'silent grep' <q-args> | cwindow 20 | redraw!
 command! CopyPath :let @+= expand("%:p")
 command! PrintPath echo expand("%:p")
 command! ReloadBuffer :e %
