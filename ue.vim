@@ -22,13 +22,12 @@ let s:ue_ubt_running = 0
 
 function! s:on_stdout(job_id, data, event_type)
 	if a:job_id == s:ue_ubt_job_id 
+		call setbufvar(s:ue_buf_id, '&modifiable', 1)
 		for line in a:data
 			if strlen(line) != 0
 				" Append build output to [UE] buffer
 				let l:trimmed_line = substitute(line, '', '', 'g')
-				call setbufvar(s:ue_buf_id, '&modifiable', 1)
 				call appendbufline(s:ue_buf_id, '$', l:trimmed_line)
-				call setbufvar(s:ue_buf_id, '&modifiable', 0)
 
 				" Append errors to quickfix
 				let l:ml = matchlist(trimmed_line, '\v(^.*)(\(\d*\)).*(error|warning).*(C\d{4})(.*)')
@@ -40,15 +39,16 @@ function! s:on_stdout(job_id, data, event_type)
 				endif
 			endif
 		endfor
+		call setbufvar(s:ue_buf_id, '&modifiable', 0)
 
 		" Scroll to bottom of log window
-		"let l:cur_wnd = winnr()
-		"let l:ue_wnd = bufwinnr(s:ue_buf_id)
-		"if l:ue_wnd != 0 && l:cur_wnd != l:ue_wnd
-			"silent exec l:ue_wnd . 'wincmd w'
-			"silent exec 'normal! G'
-			"silent exec l:cur_wnd . 'wincmd w'
-		"endif
+		let l:cur_wnd = winnr()
+		let l:ue_wnd = bufwinnr(s:ue_buf_id)
+		if l:ue_wnd != -1 && l:cur_wnd
+			silent exec l:ue_wnd . 'wincmd w'
+			silent exec 'normal! G'
+			silent exec l:cur_wnd . 'wincmd w'
+		endif
 	endif
 endfunction
 
@@ -56,6 +56,14 @@ function! s:on_stderr(job_id, data, event)
 	if a:job_id == s:ue_ubt_job_id
 		let s:ue_ubt_running = 0
 		let s:ue_ubt_job_id = 0
+		call setbufvar(s:ue_buf_id, '&modifiable', 1)
+		for line in a:data
+			if strlen(line) != 0
+				let l:trimmed_line = substitute(line, '', '', 'g')
+				call appendbufline(s:ue_buf_id, '$', l:trimmed_line)
+			endif
+		endfor
+		call setbufvar(s:ue_buf_id, '&modifiable', 0)
 	endif
 endfunction
 
@@ -71,7 +79,7 @@ function! s:is_ue_engine_dir(dir)
 endfunction
 
 function! s:get_ubt_args(project, platform, configuration)
-	return a:project . ' ' . a:platform . ' ' . a:configuration . ' -Progress -NoLog'
+	return a:project . ' ' . a:platform . ' ' . a:configuration
 endfunction
 
 function! s:get_current_project()
@@ -111,7 +119,7 @@ endfunction
 "//////////////////////////////////////////////////////////////////////////////
 " Public API
 
-function! ue#build_target()
+function! ue#build_target(...)
 	if strlen(s:project) == 0
 		echo '[UE]: No active build target'
 	endif
@@ -122,6 +130,8 @@ function! ue#build_target()
 	endif
 
 	let l:build_args = s:get_ubt_args(s:project, s:platform, s:configuration)
+	let l:build_args = a:0 ? l:build_args . ' ' . join(a:000, ' ') : l:build_args
+
 	let l:job_cmd = s:ue_ubt_cmd . ' ' . l:build_args
 	echo '[UE]: => ' . l:job_cmd
 
@@ -145,6 +155,13 @@ function! ue#build_target()
 	\}
 	let s:ue_ubt_job_id = jobstart(l:job_cmd, l:job_opts)
 	let s:ue_ubt_running = s:ue_ubt_job_id != 0
+endfunction
+
+function! ue#build_singlefile(...)
+	let l:filename = expand('%p')
+	let l:build_args = '-SingleFile=' . l:filename
+	let l:build_args = a:0 ? l:build_args . ' ' . join(a:000, ' ') : l:build_args
+	call ue#build_target(l:build_args)
 endfunction
 
 function! ue#cancel_build()
@@ -281,10 +298,12 @@ endfunction
 
 "//////////////////////////////////////////////////////////////////////////////
 " Commands
+
 command! -nargs=+ UEinit call ue#init(<f-args>)
 command! -nargs=0 UEtryinit call ue#try_init()
 command! -nargs=1 UEaddproject call ue#add_project(<q-args>)
 command! -nargs=? UEproject call ue#set_project(<q-args>)
 command! -nargs=* UEbuild call ue#build(<f-args>)
-command! -nargs=0 UEbuildtarget call ue#build_target()
+command! -nargs=* UEbuildtarget call ue#build_target(<f-args>)
+command! -nargs=* UEbuildfile call ue#build_singlefile(<f-args>)
 command! -nargs=0 UEcancelbuild call ue#cancel_build()

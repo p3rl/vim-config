@@ -40,9 +40,9 @@ endfunction
 " Theme settings
 language en
 set termguicolors
-set background=dark
-colorscheme nord
-"colorscheme solarized8_high
+set background=light
+"colorscheme nord
+colorscheme solarized8_high
 let g:solarized_italics=0
 let g:nord_italic = 1
 
@@ -184,3 +184,5 @@ nnoremap <silent><A-Right> :vertical resize +1<CR>
 
 " Mappings - Unreal
 nnoremap <F5> :UEbuildtarget<CR>
+nnoremap <C-F5> :UEbuildfile<CR>
+nnoremap <S-F5> :UEcancelbuild<CR>
