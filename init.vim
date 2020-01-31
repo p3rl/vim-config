@@ -1,63 +1,16 @@
+"//////////////////////////////////////////////////////////////////////////////
+" Plugins
 call plug#begin('~\nvim\plugged')
 Plug 'lifepillar/vim-solarized8'
 Plug 'arcticicestudio/nord-vim'
-"Plug 'relastle/bluewery.vim'
 Plug 'itchyny/lightline.vim'
 Plug 'tpope/vim-vinegar'
 Plug 'junegunn/fzf'
 Plug 'junegunn/fzf.vim'
 call plug#end()
 
-"//////////////////////////////////////////////////////////////////////////////
-" Perforce
-"
-function! s:P4Cmd(sCmd)
-    let sReturn = ""
-    let sCommandLine = "p4 " . a:sCmd
-    let v:errmsg = ""
-    return system(sCommandLine)
-    if v:errmsg == ""
-        if match(sReturn, "Perforce password (P4PASSWD) invalid or unset\.") != -1
-            let v:errmsg = "Not logged in to Perforce."
-        elseif v:shell_error != 0
-            let v:errmsg = sReturn
-        else
-            return sReturn
-        endif
-    endif
-endfunction
-
-function! s:P4BufferCmd(sCmd)
-	return s:P4Cmd(a:sCmd . " " . expand("%:p")) 
-endfunction
-
-function! s:P4FileChanges()
-	return s:P4BufferCmd("changes -m10")
-endfunction
-
-function! s:P4FileOpen()
-	return s:P4BufferCmd("open")
-endfunction
-
-function! s:P4FileRevert()
-	return s:P4BufferCmd("revert")
-endfunction
-
-function! P4FileLog()
-	let filelog = s:P4BufferCmd("filelog")
-	let lines = split(filelog, '\v\n')
-	let changes = lines[1: -1]
-
-	vsplit P4 FileLog
-	normal! ggdG
-    setlocal buftype=nofile
-
-	for line in changes
-		let tokens = split(line)
-		let chr = tokens[1][1]
-		call append(0, chr)
-	endfor
-endfunction
+exec 'source ' . $LOCALAPPDATA . '\nvim\p4.vim'
+exec 'source ' . $LOCALAPPDATA . '\nvim\ue.vim'
 
 "//////////////////////////////////////////////////////////////////////////////
 " FZF
@@ -70,7 +23,7 @@ function! FloatingFZF()
   let height = float2nr(&lines * 0.3)
   let width = float2nr(&columns * 0.6)
   let horizontal = float2nr((&columns - width) / 2)
-  let vertical = 0
+  let vertical = float2nr(&lines * 0.3)
 
   let opts = {
         \ 'relative': 'editor',
@@ -90,7 +43,6 @@ set termguicolors
 set background=dark
 colorscheme nord
 "colorscheme solarized8_high
-"colorscheme bluewery
 let g:solarized_italics=0
 let g:nord_italic = 1
 
@@ -115,6 +67,7 @@ let g:lightline = {
 " UE
 let g:ue_default_projects = [
 	\ 'Samples\Games\ShooterGame\ShooterGame.uproject',
+	\ 'FortniteGame\FortniteGame.uproject'
 	\]
 
 " Editing settings
@@ -163,7 +116,7 @@ command! ForceReloadBuffer :e! %
 command! EditVimConfig :e ~\AppData\Local\Nvim\init.vim
 command! EditGVimConfig :e ~\AppData\Local\Nvim\ginit.vim
 
-nnoremap <F5> :UEbuild<CR>
+nnoremap <F5> :UEstartbuild<CR>
     
 "//////////////////////////////////////////////////////////////////////////////
 " Mappings
@@ -197,11 +150,6 @@ nnoremap <silent><C-w>i :cclose<CR>
 nnoremap <silent><A-j> :cn<CR>
 nnoremap <silent><A-k> :cp<CR>
 
-" Mappings - Perforce
-map <silent> <S-F5> :echo <SID>P4FileOpen()<CR>
-map <silent> <C-F5> :echo <SID>P4FileRevert()<CR>
-map <silent> <S-F6> :echo <SID>P4FileChanges()<CR>
-
 " Mappings - Move
 nnoremap <S-h> 0
 nnoremap <S-l> $
@@ -234,5 +182,5 @@ nnoremap <silent><A-Down> :resize -1<CR>
 nnoremap <silent><A-Left> :vertical resize -1<CR>
 nnoremap <silent><A-Right> :vertical resize +1<CR>
 
-" Mappings - Windows
-nnoremap <F5> :UEstartbuild<CR>
+" Mappings - Unreal
+nnoremap <F5> :UEbuildtarget<CR>

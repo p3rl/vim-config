@@ -26,7 +26,9 @@ function! s:on_stdout(job_id, data, event_type)
 			if strlen(line) != 0
 				" Append build output to [UE] buffer
 				let l:trimmed_line = substitute(line, '', '', 'g')
+				call setbufvar(s:ue_buf_id, '&modifiable', 1)
 				call appendbufline(s:ue_buf_id, '$', l:trimmed_line)
+				call setbufvar(s:ue_buf_id, '&modifiable', 0)
 
 				" Append errors to quickfix
 				let l:ml = matchlist(trimmed_line, '\v(^.*)(\(\d*\)).*(error|warning).*(C\d{4})(.*)')
@@ -40,13 +42,13 @@ function! s:on_stdout(job_id, data, event_type)
 		endfor
 
 		" Scroll to bottom of log window
-		let l:cur_wnd = winnr()
-		let l:ue_wnd = bufwinnr(s:ue_buf_id)
-		if l:ue_wnd != 0
-			silent exec l:ue_wnd . 'wincmd w'
-			silent exec 'normal! G'
-			silent exec l:cur_wnd . 'wincmd w'
-		end
+		"let l:cur_wnd = winnr()
+		"let l:ue_wnd = bufwinnr(s:ue_buf_id)
+		"if l:ue_wnd != 0 && l:cur_wnd != l:ue_wnd
+			"silent exec l:ue_wnd . 'wincmd w'
+			"silent exec 'normal! G'
+			"silent exec l:cur_wnd . 'wincmd w'
+		"endif
 	endif
 endfunction
 
@@ -109,7 +111,7 @@ endfunction
 "//////////////////////////////////////////////////////////////////////////////
 " Public API
 
-function! ue#start_build()
+function! ue#build_target()
 	if strlen(s:project) == 0
 		echo '[UE]: No active build target'
 	endif
@@ -129,13 +131,11 @@ function! ue#start_build()
 	" Setup buffer
 	let l:current_buffer = bufnr('%')
 	let s:ue_buf_id = bufnr(s:ue_buf_name, 1)
-	exec 'b ' . s:ue_buf_id
-	exec 'setlocal buftype=nofile'
-	exec 'setlocal modifiable'
-	exec 'setlocal wrap'
-	exec 'silent normal! ggdG'
-	call append(0, 'Run => ' . l:job_cmd)
-	exec 'b ' . l:current_buffer
+
+	call setbufvar(s:ue_buf_id, '&buftype', 'nofile')
+	call setbufvar(s:ue_buf_id, '&modifiable', 1)
+	silent call deletebufline(s:ue_buf_id, 1, '$')
+	call setbufvar(s:ue_buf_id, '&modifiable', 0)
 
 	" Start UBT job
 	let l:job_opts = {
@@ -150,6 +150,36 @@ endfunction
 function! ue#cancel_build()
 	if s:ue_ubt_running != 0 && s:ue_ubt_job_id != 0
 		call jobstop(s:ue_ubt_job_id)
+	endif
+endfunction
+
+function! ue#build(target,...)
+	let l:target = matchstr(a:target, '\v^(client|server|game|editor)')
+	if strlen(l:target) == 0
+		echo '[UE]: Invalid target name (client|server|game|editor)'
+	endif
+
+	let l:platform = a:0 ? a:1 : 'win64'
+	if strlen(matchstr(l:platform, '\v^(win32|win64|linux|ps4|android|switch)')) == 0
+		echo '[UE]: Invalid platform (win32|win64|linux|ps4|android|switch)'
+	endif
+
+	let l:configuration = a:0 > 1 ? a:2 : 'development'
+
+	if strlen(matchstr(l:configuration, '\v^(debug|development|test|shipping)')) == 0
+		echo '[UE]: Invalid configuration (debug|development|test|shipping)'
+	endif
+
+	let l:project = s:get_current_project()
+	if empty(l:project)
+		echo '[UE]: No active project'
+		return 0
+	endif
+	let l:target = s:get_project_build_target(l:project, a:target)
+
+	if strlen(l:target) != 0
+		call s:set_target(l:target, l:platform, l:configuration)
+		call ue#build_target()
 	endif
 endfunction
 
@@ -249,28 +279,12 @@ function! ue#try_init()
 	endif
 endfunction
 
-function! ue#build(target, platform, configuration)
-	let l:project = s:get_current_project()
-	if empty(l:project)
-		echo '[UE]: No active project'
-		return 0
-	endif
-	let l:target = s:get_project_build_target(l:project, a:target)
-
-	if strlen(l:target) != 0
-		call s:set_target(l:target, a:platform, a:configuration)
-		call ue#start_build()
-	endif
-
-endfunction
-
 "//////////////////////////////////////////////////////////////////////////////
 " Commands
 command! -nargs=+ UEinit call ue#init(<f-args>)
+command! -nargs=0 UEtryinit call ue#try_init()
 command! -nargs=1 UEaddproject call ue#add_project(<q-args>)
 command! -nargs=? UEproject call ue#set_project(<q-args>)
 command! -nargs=* UEbuild call ue#build(<f-args>)
-command! -nargs=0 UEstartbuild call ue#start_build()
+command! -nargs=0 UEbuildtarget call ue#build_target()
 command! -nargs=0 UEcancelbuild call ue#cancel_build()
-
-call ue#try_init()
