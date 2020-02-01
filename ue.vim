@@ -133,7 +133,7 @@ function! ue#build_target(...)
 	let l:build_args = a:0 ? l:build_args . ' ' . join(a:000, ' ') : l:build_args
 
 	let l:job_cmd = s:ue_ubt_cmd . ' ' . l:build_args
-	echo '[UE]: => ' . l:job_cmd
+	echo '[UE]: => ' . fnamemodify(s:ue_ubt_cmd, ':t') . ' ' . l:build_args
 
 	" Clear quickfix
 	call setqflist([])

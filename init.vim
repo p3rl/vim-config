@@ -40,9 +40,9 @@ endfunction
 " Theme settings
 language en
 set termguicolors
-set background=light
-"colorscheme nord
-colorscheme solarized8_high
+set background=dark
+colorscheme nord
+"colorscheme solarized8_high
 let g:solarized_italics=0
 let g:nord_italic = 1
 
