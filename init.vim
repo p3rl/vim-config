@@ -67,7 +67,6 @@ let g:lightline = {
 " UE
 let g:ue_default_projects = [
 	\ 'Samples\Games\ShooterGame\ShooterGame.uproject',
-	\ 'FortniteGame\FortniteGame.uproject'
 	\]
 
 " Editing settings
