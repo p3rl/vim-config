@@ -87,7 +87,6 @@ let g:nord_italic = 1
 " UE
 let g:ue_default_projects = [
 	\ 'Samples\Games\ShooterGame\ShooterGame.uproject',
-	\ 'FortniteGame\FortniteGame.uproject'
 	\]
 
 " Editing settings
