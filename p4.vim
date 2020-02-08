@@ -3,13 +3,14 @@
 
 let s:p4_info = {}
 
-let s:p4_print_buf_name = '[P4 Print]'
+let s:p4_print_buf_name = '[P4]'
 let s:p4_print_buf_id = 0
 
 function! s:open_p4_buffer(buf_name)
 	let l:buf_id = bufnr(a:buf_name, 1)
 	exec 'b ' . l:buf_id
 	exec 'setlocal buftype=nofile'
+	exec 'setlocal noswapfile'
 	exec 'setlocal modifiable'
 	exec 'silent normal! ggdG'
 	return l:buf_id
@@ -64,10 +65,6 @@ function! s:p4_get_info()
 	return s:p4_info
 endfunction
 
-function! s:p4_file_open()
-	echo s:p4_buffer_cmd('open')
-endfunction
-
 function! s:p4_file_revert()
 	echo s:p4_buffer_cmd('revert')
 endfunction
@@ -77,14 +74,14 @@ function! s:p4_file_log()
 	if strlen(l:log) != 0
 		call setqflist([])
 		let l:reg = '\v.*#(\d*)\s\w*\s(\d*)\s\w*\s\w*\s(\d{4}\/\d{2}\/\d{2})\s\w*\s([a-zA-Z0-9\._\-]*)\@([a-zA-Z0-9\._\-]*)\s\(text\)\s(.*)'
-		let l:format = '%4s | %9s | %10s | %20S | %40s | %s'
-		caddexpr printf(l:format, '#Rev', '#CL', 'Date', 'Author', 'Workspace', 'Text')
-		caddexpr '-----------------------------------------------------------------------------------------------------------------------------------'
+		let l:format = '%-5s %-10s %-11s %-30s %s'
+		caddexpr printf(l:format, 'Rev', 'CL', 'Date', 'Author', 'Text')
+		caddexpr '----------------------------------------------------------------------------------------------------'
 		let l:line_index = 2
 		for l:line in split(l:log, '\n')[1:-2]
 			let l:tokens = matchlist(l:line, l:reg)
 			if len(l:tokens) > 3
-				caddexpr printf(l:format, l:tokens[1], l:tokens[2], l:tokens[3], l:tokens[4], l:tokens[5], l:tokens[6])
+				caddexpr printf(l:format, l:tokens[1], l:tokens[2], l:tokens[3], l:tokens[4], l:tokens[6])
 			endif
 		endfor
 	endif
@@ -99,19 +96,17 @@ function! s:p4_print(...)
 	let l:rev = a:0 ? a:1 : 'head'
 	let l:filename = expand("%:p")
 	let s:p4_print_buf_id = s:open_p4_buffer(s:p4_print_buf_name)
-	let l:content = s:p4_cmd('print' . ' ' . l:filename . '#'. l:rev)
+	let l:content = s:p4_cmd('print -q' . ' ' . l:filename . '#'. l:rev)
 	call append(0, split(l:content, '\n'))
 	exec 'setlocal nomodifiable'
 	exec 'silent normal! gg'
 endfunction
 
+function! s:p4_on_quickfix_event(event)
+endfunction
+
 "//////////////////////////////////////////////////////////////////////////////
 " Public API
-
-function! p4#edit(...)
-	let l:args = 'edit' . (a:0 ? ' ' . join(a:000, ' ') : '')
-	echo s:p4_buffer_cmd(l:args)
-endfunction
 
 function! p4#info(...)
 	let l:all_info = a:0 ? strlen(matchstr(a:1, '-all')) != 0 : 0
@@ -128,13 +123,48 @@ function! p4#info(...)
 	endif
 endfunction
 
+function! p4#edit(...)
+	let l:args = 'edit' . (a:0 ? ' ' . join(a:000, ' ') : '')
+	echo s:p4_buffer_cmd(l:args)
+endfunction
+
+function! p4#diff(...)
+	let l:rev = a:0 ? a:1 : 'head'
+	let l:filename = expand("%:p")
+	let l:content = s:p4_cmd('print -q' . ' ' . l:filename . '#'. l:rev)
+
+	if strlen(l:content)
+		silent exec 'only'
+		exec 'difft'
+		let l:remote_buf_id = bufnr(s:p4_print_buf_name, 1)
+		call setbufvar(l:remote_buf_id, '&modifiable', 1)
+		exec 'vert sb ' . l:remote_buf_id
+		call deletebufline(l:remote_buf_id, 1, '$')
+		call setbufline(l:remote_buf_id, 1, split(l:content, '\n'))
+		call setbufvar(l:remote_buf_id, '&modifiable', 0)
+		exec 'difft'
+	endif
+
+endfunction
+
 "//////////////////////////////////////////////////////////////////////////////
 " Commands
 
 command! -nargs=* P4info call p4#info(<f-args>)
-command! -nargs=0 P4open call s:p4_file_open()
 command! -nargs=0 P4revert call s:p4_file_revert()
 command! -nargs=0 P4filelog call s:p4_file_log()
 command! -nargs=0 P4opened call s:p4_opened()
 command! -nargs=* P4print call s:p4_print(<f-args>)
 command! -nargs=* P4edit call p4#edit(<f-args>)
+command! -nargs=* P4diff call p4#diff(<f-args>)
+
+"//////////////////////////////////////////////////////////////////////////////
+" Auto commands
+augroup quickfix_events
+	autocmd!
+	autocmd WinEnter * if &buftype == 'quickfix' | call s:p4_on_quickfix_event('win_enter')
+	autocmd WinLeave * if &buftype == 'quickfix' | call s:p4_on_quickfix_event('win_leave')
+	autocmd BufWinEnter quickfix call s:p4_on_quickfix_event('buf_win_enter')
+	autocmd BufWinLeave quickfix call s:p4_on_quickfix_event('buf_win_leave')
+augroup END
+

@@ -1,16 +1,19 @@
 "//////////////////////////////////////////////////////////////////////////////
 " Plugins
-call plug#begin('~\nvim\plugged')
+call plug#begin(stdpath('data') . '/plugged')
 Plug 'lifepillar/vim-solarized8'
 Plug 'arcticicestudio/nord-vim'
+Plug 'NLKNguyen/papercolor-theme'
 Plug 'itchyny/lightline.vim'
 Plug 'tpope/vim-vinegar'
 Plug 'junegunn/fzf'
 Plug 'junegunn/fzf.vim'
 call plug#end()
 
-exec 'source ' . $LOCALAPPDATA . '\nvim\p4.vim'
-exec 'source ' . $LOCALAPPDATA . '\nvim\ue.vim'
+exec 'source ' . stdpath('config') . '/p4.vim'
+exec 'source ' . stdpath('config') . '/ue.vim'
+"exec 'source ' . $LOCALAPPDATA . '\nvim\p4.vim'
+"exec 'source ' . $LOCALAPPDATA . '\nvim\ue.vim'
 
 "//////////////////////////////////////////////////////////////////////////////
 " FZF
@@ -38,35 +41,53 @@ endfunction
 
 "//////////////////////////////////////////////////////////////////////////////
 " Theme settings
-language en
-set termguicolors
-set background=dark
-colorscheme nord
-"colorscheme solarized8_high
-let g:solarized_italics=0
-let g:nord_italic = 1
 
-"//////////////////////////////////////////////////////////////////////////////
+" PaperColor
+let g:PaperColor_Theme_Options = {
+ \	'language': {
+ \		'cpp': {
+ \			'highlight_standard_library': 1
+ \		},
+ \		'c': {
+ \			'highlight_builtins' : 1
+ \		}
+ \	}
+\}
+
 " Lightline
 function! LightlineFileNameHead()
 	return expand("%:h")
 endfunction
 
 let g:lightline = {
-      \ 'colorscheme': 'nord',
+      \ 'colorscheme': 'PaperColor',
       \ 'active': {
-      \   'left': [ [ 'mode', 'paste' ],
-      \             [ 'readonly', 'filename', 'modified', 'filenamehead' ] ]
+      \		'left': [ [ 'mode', 'paste' ],
+      \             [ 'readonly', 'filename', 'modified', 'filenamehead' ] ],
+	  \		'right': [ ['filetype', 'fileencoding', 'fileformat'] ]
       \ },
-      \ 'component_function': {
-      \   'filenamehead': 'LightlineFileNameHead'
-      \ },
+      \		'component_function': {
+      \			'filenamehead': 'LightlineFileNameHead',
+	  \			'ue_build_status': 'UEBuildStatus'
+      \		},
       \ }
+
+language en
+set termguicolors
+set background=light
+colorscheme PaperColor
+"colorscheme nord 
+"colorscheme solarized8_high
+let g:solarized_italics=0
+let g:nord_italic = 1
+"let g:gruvbox_contrast_dark='medium'
+
 
 "//////////////////////////////////////////////////////////////////////////////
 " UE
 let g:ue_default_projects = [
 	\ 'Samples\Games\ShooterGame\ShooterGame.uproject',
+	\ 'FortniteGame\FortniteGame.uproject'
 	\]
 
 " Editing settings
@@ -100,14 +121,15 @@ set autoread
 set listchars=tab::.
 set wildignore+=*\\tmp\\*,*.swp,*.zip,*.exe
 "set grepprg=findstr\ /s\ /n
-set grepprg=rg.exe\ --type-add\ \"bat:*.bat\"\ --type-add\ \"ini:*.ini\"\ -tbat\ -tini\ -tc\ -tcpp\ -tcs\ -tpy\ -tlua\ --vimgrep
-"autocmd QuickFixCmdPost *grep* cwindow 20
+set grepprg=rg.exe\ -tcpp\ -tcs\ --vimgrep
+autocmd QuickFixCmdPost *grep* bo cwindow 20
 set scrolloff=5
 let g:netrw_fastbrowse = 0
+set mouse=n
 
 "//////////////////////////////////////////////////////////////////////////////
 " Commands
-command! -nargs=+ G execute 'silent grep' <q-args> | cwindow 20 | redraw!
+command! -nargs=+ G execute 'silent grep' <q-args>
 command! CopyPath :let @+= expand("%:p")
 command! PrintPath echo expand("%:p")
 command! ReloadBuffer :e %
@@ -115,7 +137,7 @@ command! ForceReloadBuffer :e! %
 command! EditVimConfig :e ~\AppData\Local\Nvim\init.vim
 command! EditGVimConfig :e ~\AppData\Local\Nvim\ginit.vim
 
-nnoremap <F5> :UEstartbuild<CR>
+nnoremap <F5> :UEbuildtarget<CR>
     
 "//////////////////////////////////////////////////////////////////////////////
 " Mappings
@@ -146,6 +168,7 @@ nnoremap gw :vim <cword> %<CR>:copen<CR>
 " Mappings - Quickfix
 nnoremap <silent><C-w>u :copen<CR>
 nnoremap <silent><C-w>i :cclose<CR>
+nnoremap <silent><A-h> :cfirst<CR>
 nnoremap <silent><A-j> :cn<CR>
 nnoremap <silent><A-k> :cp<CR>
 
@@ -180,6 +203,10 @@ nnoremap <silent><A-Up> :resize +1<CR>
 nnoremap <silent><A-Down> :resize -1<CR>
 nnoremap <silent><A-Left> :vertical resize -1<CR>
 nnoremap <silent><A-Right> :vertical resize +1<CR>
+
+" Mappings - Diff
+nnoremap <C-2> ]c
+nnoremap <C-3> [c
 
 " Mappings - Unreal
 nnoremap <F5> :UEbuildtarget<CR>
