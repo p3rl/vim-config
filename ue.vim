@@ -24,22 +24,7 @@ let s:ue_buf_name = '[UE]'
 let s_ue_buf_id = 0
 
 let s:ue_build_watch_enabled = 0
-
-let s:ue_ubt_state = {
-	\ 'job_id': -1,
-	\ 'counter': 0,
-	\ 'errors': [],
-	\ 'status': ''
-\}
-
-function! s:make_ubt_state()
-	return {
-		\ 'job_id': -1,
-		\ 'counter': 0,
-		\ 'errors': [],
-		\ 'status': ''
-	\}
-endfunction
+let s:ubt_job_state = { 'job_id': -1, 'counter': 0, 'errors': [], 'status': '' }
 
 function! s:on_ubt_event(job_id, data, event)
 	if a:job_id != s:ubt_job_state.job_id
@@ -75,7 +60,8 @@ function! s:on_ubt_event(job_id, data, event)
 		endif
 	elseif a:event == 'exit' || a:event == 'stderr'
 		let s:ubt_job_state.job_id = -1
-		echo '[UE]: Build finished [Errors: ' . len(s:ubt_job_state.errors) . ']'
+		let l:num_errors = len(s:ubt_job_state.errors)
+		echo '[UE]: Build finished ' . (l:num_errors == 0 ? '[OK]' : '[Errors: ' . l:num_errors . ']')
 	else
 		echo '[UE]: Unknown UBT event'
 	endif
@@ -160,7 +146,7 @@ function! ue#build_target(...)
 
 	" Clear build state
 	call setqflist([])
-	let s:ubt_job_state = s:make_ubt_state()
+	let s:ubt_job_state = { 'job_id': -1, 'counter': 0, 'errors': [], 'status': '' }
 
 	" Setup buffer
 	let s:ue_buf_id = bufnr(s:ue_buf_name, 1)
@@ -205,12 +191,13 @@ function! ue#build(target,...)
 		echo '[UE]: Invalid target name (client|server|game|editor)'
 	endif
 
-	let l:platform = a:0 ? a:1 : 'win64'
+	let l:platform = get(a:000, 0, 'win64')
 	if strlen(matchstr(l:platform, '\v^(win32|win64|linux|ps4|android|switch)')) == 0
 		echo '[UE]: Invalid platform (win32|win64|linux|ps4|android|switch)'
 	endif
 
-	let l:configuration = a:0 > 1 ? a:2 : 'development'
+	let l:configuration = get(a:000, 1, 'development')
+	let l:additional_args = a:0 > 2 ? join(a:000[2:-1], ' ') : ''
 
 	if strlen(matchstr(l:configuration, '\v^(debug|development|test|shipping)')) == 0
 		echo '[UE]: Invalid configuration (debug|development|test|shipping)'
@@ -225,7 +212,7 @@ function! ue#build(target,...)
 
 	if strlen(l:target) != 0
 		call s:set_target(l:target, l:platform, l:configuration)
-		call ue#build_target()
+		call ue#build_target(l:additional_args)
 	endif
 endfunction
 
