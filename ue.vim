@@ -20,7 +20,7 @@ let s:build_target = ''
 let s:platform = 'Win64'
 let s:configuraton = 'Development'
 
-let s:ue_buf_name = 'UnrealBuildTool'
+let s:ue_buf_name = 'UBT'
 let s_ue_buf_id = 0
 
 let s:ue_build_watch_enabled = 0
