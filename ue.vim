@@ -340,7 +340,6 @@ endfunction
 
 "//////////////////////////////////////////////////////////////////////////////
 " Commands
-
 function s:complete_build_args(arg, cmd, cursor_pos)
 	if a:cursor_pos < 9
 		return ['editor', 'client', 'server', 'game']
