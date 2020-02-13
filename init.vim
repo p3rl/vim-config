@@ -62,7 +62,6 @@ let g:lightline = {
       \ 'active': {
       \		'left': [ [ 'mode', 'paste' ],
       \             [ 'readonly', 'filename', 'modified', 'filenamehead' ] ],
-	  \		'right': [ ['filetype', 'fileencoding', 'fileformat'] ]
       \ },
       \		'component_function': {
       \			'filenamehead': 'LightlineFileNameHead',
@@ -78,14 +77,11 @@ colorscheme PaperColor
 "colorscheme solarized8_high
 let g:solarized_italics=0
 let g:nord_italic = 1
-"let g:gruvbox_contrast_dark='medium'
-
 
 "//////////////////////////////////////////////////////////////////////////////
 " UE
 let g:ue_default_projects = [
 	\ 'Samples\Games\ShooterGame\ShooterGame.uproject',
-	\ 'FortniteGame\FortniteGame.uproject'
 	\]
 
 " Editing settings
@@ -132,8 +128,8 @@ command! CopyPath :let @+= expand("%:p")
 command! PrintPath echo expand("%:p")
 command! ReloadBuffer :e %
 command! ForceReloadBuffer :e! %
-command! EditVimConfig :e ~\AppData\Local\Nvim\init.vim
-command! EditGVimConfig :e ~\AppData\Local\Nvim\ginit.vim
+command! EditVimConfig exec printf(':e %s/init.vim', stdpath('config'))
+command! EditGVimConfig exec printf(':e %s/ginit.vim', stdpath('config'))
 
 nnoremap <F5> :UEbuildtarget<CR>
     
