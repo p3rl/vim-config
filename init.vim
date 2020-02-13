@@ -12,8 +12,6 @@ call plug#end()
 
 exec 'source ' . stdpath('config') . '/p4.vim'
 exec 'source ' . stdpath('config') . '/ue.vim'
-"exec 'source ' . $LOCALAPPDATA . '\nvim\p4.vim'
-"exec 'source ' . $LOCALAPPDATA . '\nvim\ue.vim'
 
 "//////////////////////////////////////////////////////////////////////////////
 " FZF
@@ -87,6 +85,7 @@ let g:nord_italic = 1
 " UE
 let g:ue_default_projects = [
 	\ 'Samples\Games\ShooterGame\ShooterGame.uproject',
+	\ 'FortniteGame\FortniteGame.uproject'
 	\]
 
 " Editing settings

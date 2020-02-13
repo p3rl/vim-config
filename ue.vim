@@ -20,7 +20,7 @@ let s:build_target = ''
 let s:platform = 'Win64'
 let s:configuraton = 'Development'
 
-let s:ue_buf_name = '[UE]'
+let s:ue_buf_name = 'UnrealBuildTool'
 let s_ue_buf_id = 0
 
 let s:ue_build_watch_enabled = 0
@@ -298,7 +298,7 @@ function! ue#set_project(arg)
 				let l:project = s:ue_projects[l:i]
 				if l:project.name == a:arg
 					let s:ue_current_project_id = l:i
-					echo '[UE]: Project set to ' . a:project_name
+					echo '[UE]: Project set to ' . a:arg
 				endif
 			endfor
 		endif
@@ -341,7 +341,7 @@ endfunction
 "//////////////////////////////////////////////////////////////////////////////
 " Commands
 
-function s:ue_complete_build_args(arg, cmd, cursor_pos)
+function s:complete_build_args(arg, cmd, cursor_pos)
 	if a:cursor_pos < 9
 		return ['editor', 'client', 'server', 'game']
 	elseif a:cursor_pos > 16
@@ -351,10 +351,18 @@ function s:ue_complete_build_args(arg, cmd, cursor_pos)
 	endif
 endfunction
 
+function s:complete_projects(arg, cmd, cursor_pos)
+	let l:project_names = []
+	for l:project in s:ue_projects
+		call add(l:project_names, l:project.name)
+	endfor
+	return l:project_names
+endfunction
+
 command! -nargs=* UEinit call ue#init(<f-args>)
 command! -nargs=1 UEaddproject call ue#add_project(<q-args>)
-command! -nargs=? UEproject call ue#set_project(<q-args>)
-command! -nargs=* -complete=customlist,s:ue_complete_build_args UEbuild call ue#build(<f-args>)
+command! -nargs=? -complete=customlist,s:complete_projects UEproject call ue#set_project(<q-args>)
+command! -nargs=* -complete=customlist,s:complete_build_args UEbuild call ue#build(<f-args>)
 command! -nargs=* UEbuildtarget call ue#build_target(<f-args>)
 command! -nargs=* UEbuildfile call ue#build_singlefile(<f-args>)
 command! -nargs=1 UEbuildwatch call ue#build_watch(<f-args>)
