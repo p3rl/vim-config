@@ -4,7 +4,7 @@
 let g:ue_is_initialized = 0
 let g:ue_build_status_text = ''
 
-let s:ue_relative_path_to_run_uat = 'Engine\Build\BatchFiles\RunUAT.bat'
+let s:ue_relative_path_to_run_uat = 'Engine/Build/BatchFiles/RunUAT.bat'
 let s:ue_engine_dir = ''
 let s:ue_uat_dir = ''
 let s:ue_run_uat_cmd = ''
@@ -68,7 +68,7 @@ function! s:on_ubt_event(job_id, data, event)
 endfunction
 
 function! s:is_ue_engine_dir(dir)
-	return filereadable(expand(a:dir . '\' . s:ue_relative_path_to_run_uat))
+	return filereadable(expand(a:dir . '/' . s:ue_relative_path_to_run_uat))
 endfunction
 
 function! s:try_find_engine_dir()
@@ -76,7 +76,7 @@ function! s:try_find_engine_dir()
 	let l:dir = l:cwd
 	while 1
 		let l:found = s:is_ue_engine_dir(l:dir) 
-		cd..
+		cd ..
 		let l:parentdir = getcwd()
 		if l:found || l:parentdir == l:dir
 			break
@@ -108,6 +108,11 @@ endfunction
 function! s:get_project_build_target(project, target)
 	for l:build_target in a:project.build_targets
 		if l:build_target =~ a:target
+			return l:build_target
+		endif
+	endfor
+	for l:build_target in a:project.build_targets
+		if l:build_target == a:project.name
 			return l:build_target
 		endif
 	endfor
@@ -192,8 +197,8 @@ function! ue#build(target,...)
 	endif
 
 	let l:platform = get(a:000, 0, 'win64')
-	if strlen(matchstr(l:platform, '\v^(win32|win64|linux|ps4|android|switch)')) == 0
-		echo '[UE]: Invalid platform (win32|win64|linux|ps4|android|switch)'
+	if strlen(matchstr(l:platform, '\v^(win32|win64|linux|ps4|android|switch|ios)')) == 0
+		echo '[UE]: Invalid platform (win32|win64|linux|ps4|android|switch|ios)'
 	endif
 
 	let l:configuration = get(a:000, 1, 'development')
@@ -244,14 +249,14 @@ function! ue#add_project(path)
 	" Find project build targets
 	let l:build_targets = []
 	let l:project_dir = fnamemodify(l:project_path, ':h')
-	let l:build_target_files = split(globpath(l:project_dir . '\Source', '*.Target.cs'), '\n')
+	let l:build_target_files = split(globpath(l:project_dir . '/Source', '*.Target.cs'), '\n')
 	for build_target_file in l:build_target_files
 		let l:target_name = fnamemodify(build_target_file, ':t')[0 : -11]
 		call add(l:build_targets, l:target_name)
 	endfor
 
 	if len(l:build_targets) == 0
-		echo '[UE]: Failed to find valid build targets in "' . l:project_dir . '\Source' . '"'
+		echo '[UE]: Failed to find valid build targets in "' . l:project_dir . '/Source' . '"'
 		return
 	endif
 
@@ -318,16 +323,16 @@ function! ue#init(...)
 	endif
 
 	let s:ue_engine_dir = l:engine_dir
-	let s:ue_uat_dir = s:ue_engine_dir . '\' . 'Engine\Binaries\DotNET\'
-	let s:ue_run_uat_cmd = s:ue_uat_dir . 'RunUAT.bat'
-	let s:ue_uat_cmd = s:ue_uat_dir . 'AutomationTool.exe'
-	let s:ue_ubt_cmd = s:ue_uat_dir . 'UnrealBuildTool.exe'
+	let s:ue_uat_dir = s:ue_engine_dir . '/' . 'Engine/Binaries/DotNET'
+	let s:ue_run_uat_cmd = s:ue_uat_dir . '/RunUAT.sh'
+	let s:ue_uat_cmd = s:ue_uat_dir . '/AutomationTool.exe'
+	let s:ue_ubt_cmd = 'mono ' . s:ue_uat_dir . '/UnrealBuildTool.exe'
 
 	echo '[UE]: Engine directory set to "' . s:ue_engine_dir . '"'
 
 	if len(g:ue_default_projects) != 0
 		for l:project_path in g:ue_default_projects
-			call ue#add_project(s:ue_engine_dir . '\' . l:project_path)
+			call ue#add_project(s:ue_engine_dir . '/' . l:project_path)
 		endfor
 	endif
 

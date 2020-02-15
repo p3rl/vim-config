@@ -69,8 +69,8 @@ let g:lightline = {
       \		},
       \ }
 
-language en
-set termguicolors
+"language en
+"set termguicolors
 set background=light
 colorscheme PaperColor
 "colorscheme nord 
@@ -81,8 +81,8 @@ let g:nord_italic = 1
 "//////////////////////////////////////////////////////////////////////////////
 " UE
 let g:ue_default_projects = [
-	\ 'Samples\Games\ShooterGame\ShooterGame.uproject',
-	\]
+	\ 'Samples/Games/ShooterGame/ShooterGame.uproject',
+	\ 'Samples/Games/ActionRPG/ActionRPG.uproject']
 
 " Editing settings
 syntax enable
@@ -137,10 +137,9 @@ nnoremap <F5> :UEbuildtarget<CR>
 " Mappings
 tnoremap <Esc> <C-\><C-n>
 inoremap <C-space> <Esc>
-inoremap <C-return> <Esc>
 noremap <silent> <Esc> :noh<CR>
 noremap <C-p> :FZF .<CR>
-noremap <C-Tab> :Buffers<CR>
+noremap <C-m> :Buffers<CR>
 cnoremap <C-space> <Esc>
 nnoremap <F9> :PrintPath <CR>
 nnoremap <F10> :CopyPath <CR>
