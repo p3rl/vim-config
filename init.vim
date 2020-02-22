@@ -1,5 +1,6 @@
 "//////////////////////////////////////////////////////////////////////////////
 " Plugins
+
 call plug#begin(stdpath('data') . '/plugged')
 Plug 'lifepillar/vim-solarized8'
 Plug 'arcticicestudio/nord-vim'
@@ -8,6 +9,8 @@ Plug 'itchyny/lightline.vim'
 Plug 'tpope/vim-vinegar'
 Plug 'junegunn/fzf'
 Plug 'junegunn/fzf.vim'
+Plug 'godlygeek/tabular'
+Plug 'plasticboy/vim-markdown'
 call plug#end()
 
 exec 'source ' . stdpath('config') . '/p4.vim'
@@ -40,7 +43,18 @@ endfunction
 "//////////////////////////////////////////////////////////////////////////////
 " Theme settings
 
+set termguicolors
+
+"colorscheme nord 
+"let g:nord_italic = 1
+
+set background=dark
+colorscheme solarized8_high
+let g:solarized_italics=1
+let g:solarized_extra_hi_groups=1
+
 " PaperColor
+"colorscheme PaperColor
 let g:PaperColor_Theme_Options = {
  \	'language': {
  \		'cpp': {
@@ -58,33 +72,25 @@ function! LightlineFileNameHead()
 endfunction
 
 let g:lightline = {
-      \ 'colorscheme': 'PaperColor',
-      \ 'active': {
-      \		'left': [ [ 'mode', 'paste' ],
-      \             [ 'readonly', 'filename', 'modified', 'filenamehead' ] ],
-      \ },
-      \		'component_function': {
-      \			'filenamehead': 'LightlineFileNameHead',
-	  \			'ue_build_status': 'UEBuildStatus'
-      \		},
-      \ }
-
-"language en
-"set termguicolors
-set background=light
-colorscheme PaperColor
-"colorscheme nord 
-"colorscheme solarized8_high
-let g:solarized_italics=0
-let g:nord_italic = 1
+\	'colorscheme': 'solarized',
+\	'active': {
+\		'left': [ [ 'mode', 'paste' ], [ 'readonly', 'filename', 'modified', 'filenamehead' ] ],
+\	},
+\	'component_function': {
+\		'filenamehead': 'LightlineFileNameHead',
+\		'ue_build_status': 'UEBuildStatus'
+\	},
+\ }
 
 "//////////////////////////////////////////////////////////////////////////////
 " UE
 let g:ue_default_projects = [
 	\ 'Samples/Games/ShooterGame/ShooterGame.uproject',
-	\ 'Samples/Games/ActionRPG/ActionRPG.uproject']
+	\ 'FortniteGame/FortniteGame.uproject']
 
-" Editing settings
+"//////////////////////////////////////////////////////////////////////////////
+" General settings
+"language en
 syntax enable
 set encoding=utf-8
 set tabstop=4
@@ -95,9 +101,6 @@ set autoindent
 set smartindent
 set smarttab
 set laststatus=2
-
-"//////////////////////////////////////////////////////////////////////////////
-" General settings
 set splitright
 set showmatch
 set ignorecase
@@ -120,28 +123,26 @@ autocmd QuickFixCmdPost *grep* bo cwindow 20
 set scrolloff=5
 let g:netrw_fastbrowse = 0
 set mouse=n
+set clipboard=unnamedplus
 
 "//////////////////////////////////////////////////////////////////////////////
 " Commands
 command! -nargs=+ G execute 'silent grep' <q-args>
 command! CopyPath :let @+= expand("%:p")
-command! PrintPath echo expand("%:p")
 command! ReloadBuffer :e %
 command! ForceReloadBuffer :e! %
 command! EditVimConfig exec printf(':e %s/init.vim', stdpath('config'))
 command! EditGVimConfig exec printf(':e %s/ginit.vim', stdpath('config'))
+command! Notes exec ':e c:/git/docs/ue/ue.md'
 
-nnoremap <F5> :UEbuildtarget<CR>
-    
 "//////////////////////////////////////////////////////////////////////////////
 " Mappings
 tnoremap <Esc> <C-\><C-n>
 inoremap <C-space> <Esc>
 noremap <silent> <Esc> :noh<CR>
+noremap <C-Tab> :Buffers<CR>
 noremap <C-p> :FZF .<CR>
-noremap <C-m> :Buffers<CR>
 cnoremap <C-space> <Esc>
-nnoremap <F9> :PrintPath <CR>
 nnoremap <F10> :CopyPath <CR>
 nnoremap <F11> :ReloadBuffer <CR>
 nnoremap <C-F11> :ForceReloadBuffer <CR>

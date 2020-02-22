@@ -310,6 +310,14 @@ function! ue#set_project(arg)
 	endif
 endfunction!
 
+function! ue#window(...)
+	let l:height = get(a:000, 0, 20)	
+	let s:ue_buf_id = bufnr(s:ue_buf_name, 1)
+	silent exec 'bo sp'
+	silent exec printf('b %d', s:ue_buf_id)
+	silent exec printf('resize %d', l:height)
+endfunction
+
 function! ue#init(...)
 	if a:0 && s:is_ue_engine_dir(a:1)
 		let l:engine_dir = a:1
@@ -326,7 +334,7 @@ function! ue#init(...)
 	let s:ue_uat_dir = s:ue_engine_dir . '/' . 'Engine/Binaries/DotNET'
 	let s:ue_run_uat_cmd = s:ue_uat_dir . '/RunUAT.sh'
 	let s:ue_uat_cmd = s:ue_uat_dir . '/AutomationTool.exe'
-	let s:ue_ubt_cmd = 'mono ' . s:ue_uat_dir . '/UnrealBuildTool.exe'
+	let s:ue_ubt_cmd = s:ue_uat_dir . '/UnrealBuildTool.exe'
 
 	echo '[UE]: Engine directory set to "' . s:ue_engine_dir . '"'
 
@@ -371,6 +379,7 @@ command! -nargs=* UEbuildtarget call ue#build_target(<f-args>)
 command! -nargs=* UEbuildfile call ue#build_singlefile(<f-args>)
 command! -nargs=1 UEbuildwatch call ue#build_watch(<f-args>)
 command! -nargs=0 UEcancelbuild call ue#cancel_build()
+command! -nargs=? UEwindow call ue#window(<q-args>)
 
 "//////////////////////////////////////////////////////////////////////////////
 " Auto commands
