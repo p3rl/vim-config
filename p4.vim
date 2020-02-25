@@ -92,17 +92,31 @@ function! s:p4_opened()
 	echo s:p4_cmd('opened')
 endfunction
 
+function s:p4_get_file_content(filepath, revision)
+	return s:p4_cmd('print -q' . ' ' . a:filepath . '#'. a:revision)
+endfunction
+
 function! s:p4_print(...)
-	let l:rev = a:0 ? a:1 : 'head'
-	let l:filename = expand("%:p")
+	let l:revision = a:0 ? a:1 : 'head'
+	let l:content = s:p4_get_file_content(expand("%:p"), l:revision)
 	let s:p4_print_buf_id = s:open_p4_buffer(s:p4_print_buf_name)
-	let l:content = s:p4_cmd('print -q' . ' ' . l:filename . '#'. l:rev)
 	call append(0, split(l:content, '\n'))
 	exec 'setlocal nomodifiable'
 	exec 'silent normal! gg'
 endfunction
 
 function! s:p4_on_quickfix_event(event)
+endfunction
+
+function! s:p4_where(...)
+	let l:filepath = get(a:000, 0, expand("%:p"))
+	let l:result = s:p4_cmd('where ' . l:filepath)
+	if strlen(l:result)
+		let l:lines = split(l:result)
+		if len(l:lines) == 3
+			return { 'depot': l:lines[0], 'client': l:lines[1], 'local': l:lines[2] }
+		endif
+	endif
 endfunction
 
 "//////////////////////////////////////////////////////////////////////////////
@@ -147,6 +161,47 @@ function! p4#diff(...)
 
 endfunction
 
+function p4#difftool(...)
+	let l:left_rev = 'workspace'
+	let l:right_rev = 'head'
+
+	if a:0 > 2
+		echo '[P4]: Invalid number of arguments'
+		return
+	endif
+
+	if a:0 == 2
+		let l:left_rev = a:1
+		let l:right_rev = a:2
+	elseif a:0 == 1
+		let l:right_rev = a:1
+	endif
+
+	let l:fileinfo = s:p4_where()
+	let l:args = { 'left': { 'title': '', 'path': '' }, 'right': { 'title': '', 'path': '' } }
+
+	if l:left_rev == 'workspace'
+		let l:args.left.title = l:fileinfo.local
+		let l:args.left.path = l:fileinfo.local
+	else
+		let l:tmp_filename = printf('%s-%s', tempname(), fnamemodify(l:fileinfo.local, ":t"))
+		let l:content = s:p4_get_file_content(l:fileinfo.local, l:left_rev)
+		call writefile(split(l:content, '\n'), l:tmp_filename)	
+
+		let l:args.left.title = l:fileinfo.depot . '#' . l:left_rev
+		let l:args.left.path = l:tmp_filename
+	endif
+
+	let l:tmp_filename = printf('%s-%s', tempname(), fnamemodify(l:fileinfo.local, ":t"))
+	let l:content = s:p4_get_file_content(l:fileinfo.local, l:right_rev)
+	call writefile(split(l:content, '\n'), l:tmp_filename)	
+
+	let l:args.right.title = l:fileinfo.depot . '#' . l:right_rev
+	let l:args.right.path = l:tmp_filename
+
+	call system(printf('p4merge.exe -nl %s -nr %s %s %s', l:args.left.title, l:args.right.title, l:args.left.path, l:args.right.path))
+endfunction
+
 "//////////////////////////////////////////////////////////////////////////////
 " Commands
 
@@ -157,6 +212,7 @@ command! -nargs=0 P4opened call s:p4_opened()
 command! -nargs=* P4print call s:p4_print(<f-args>)
 command! -nargs=* P4edit call p4#edit(<f-args>)
 command! -nargs=* P4diff call p4#diff(<f-args>)
+command! -nargs=* P4difftool call p4#difftool(<f-args>)
 
 "//////////////////////////////////////////////////////////////////////////////
 " Auto commands
