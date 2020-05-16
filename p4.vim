@@ -3,7 +3,7 @@
 
 let s:p4_info = {}
 
-let s:p4_print_buf_name = '[P4]'
+let s:p4_print_buf_name = 'P4'
 let s:p4_print_buf_id = 0
 
 function! s:open_p4_buffer(buf_name)
@@ -119,6 +119,21 @@ function! s:p4_where(...)
 	endif
 endfunction
 
+function! s:p4_depot_path()
+	let l:fileinfo = s:p4_where()
+	if len(l:fileinfo) > 1
+		return get(l:fileinfo, 'depot', '')
+	endif
+endfunction
+
+function! s:p4_copy_depot_path()
+	let l:depot_path = s:p4_depot_path()
+	if len(l:depot_path) > 0
+		let @+= l:depot_path
+		echo 'Copied -> ' . l:depot_path
+	endif
+endfunction
+
 "//////////////////////////////////////////////////////////////////////////////
 " Public API
 
@@ -162,8 +177,8 @@ function! p4#diff(...)
 endfunction
 
 function p4#difftool(...)
-	let l:left_rev = 'workspace'
-	let l:right_rev = 'head'
+	let l:left_rev = 'head'
+	let l:right_rev = 'workspace'
 
 	if a:0 > 2
 		echo '[P4]: Invalid number of arguments'
@@ -180,26 +195,29 @@ function p4#difftool(...)
 	let l:fileinfo = s:p4_where()
 	let l:args = { 'left': { 'title': '', 'path': '' }, 'right': { 'title': '', 'path': '' } }
 
-	if l:left_rev == 'workspace'
-		let l:args.left.title = l:fileinfo.local
-		let l:args.left.path = l:fileinfo.local
+	if l:right_rev == 'workspace'
+		let l:args.right.title = l:fileinfo.local
+		let l:args.right.path = l:fileinfo.local
 	else
 		let l:tmp_filename = printf('%s-%s', tempname(), fnamemodify(l:fileinfo.local, ":t"))
-		let l:content = s:p4_get_file_content(l:fileinfo.local, l:left_rev)
+		let l:content = s:p4_get_file_content(l:fileinfo.local, l:right_rev)
 		call writefile(split(l:content, '\n'), l:tmp_filename)	
 
-		let l:args.left.title = l:fileinfo.depot . '#' . l:left_rev
-		let l:args.left.path = l:tmp_filename
+		let l:args.right.title = l:fileinfo.depot . '#' . l:right_rev
+		let l:args.right.path = l:tmp_filename
 	endif
 
 	let l:tmp_filename = printf('%s-%s', tempname(), fnamemodify(l:fileinfo.local, ":t"))
-	let l:content = s:p4_get_file_content(l:fileinfo.local, l:right_rev)
+	let l:content = s:p4_get_file_content(l:fileinfo.local, l:left_rev)
 	call writefile(split(l:content, '\n'), l:tmp_filename)	
 
-	let l:args.right.title = l:fileinfo.depot . '#' . l:right_rev
-	let l:args.right.path = l:tmp_filename
+	let l:args.left.title = l:fileinfo.depot . '#' . l:left_rev
+	let l:args.left.path = l:tmp_filename
 
-	call system(printf('p4merge.exe -nl %s -nr %s %s %s', l:args.left.title, l:args.right.title, l:args.left.path, l:args.right.path))
+	let l:job_cmd = printf('p4merge.exe -nl %s -nr %s %s %s', l:args.left.title, l:args.right.title, l:args.left.path, l:args.right.path)
+	let l:job_opts = { 'deatch': 1 }
+	call jobstart(l:job_cmd, l:job_opts)
+	"call system(printf('p4merge.exe -nl %s -nr %s %s %s', l:args.left.title, l:args.right.title, l:args.left.path, l:args.right.path))
 endfunction
 
 "//////////////////////////////////////////////////////////////////////////////
@@ -213,6 +231,8 @@ command! -nargs=* P4print call s:p4_print(<f-args>)
 command! -nargs=* P4edit call p4#edit(<f-args>)
 command! -nargs=* P4diff call p4#diff(<f-args>)
 command! -nargs=* P4difftool call p4#difftool(<f-args>)
+command! -nargs=* P4depotpath call s:p4_depot_path()
+command! -nargs=* P4copydepotpath call s:p4_copy_depot_path()
 
 "//////////////////////////////////////////////////////////////////////////////
 " Auto commands

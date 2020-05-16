@@ -54,9 +54,11 @@ function! s:on_ubt_event(job_id, data, event)
 
 		" Scroll to bottom of log window
 		let l:ue_buf_winnr = bufwinnr(s:ue_buf_name)
-		let l:ue_win_bufnr = winbufnr(l:ue_buf_winnr)
-		if l:ue_win_bufnr == s:ue_buf_id
-			call nvim_win_set_cursor(win_getid(l:ue_buf_winnr), [s:ubt_job_state.counter, 0])
+		if l:ue_buf_winnr != -1
+			let l:ue_win_bufnr = winbufnr(l:ue_buf_winnr)
+			if l:ue_win_bufnr == s:ue_buf_id
+				call nvim_win_set_cursor(win_getid(l:ue_buf_winnr), [s:ubt_job_state.counter, 0])
+			endif
 		endif
 	elseif a:event == 'exit' || a:event == 'stderr'
 		let s:ubt_job_state.job_id = -1
@@ -310,8 +312,8 @@ function! ue#set_project(arg)
 	endif
 endfunction!
 
-function! ue#window(...)
-	let l:height = get(a:000, 0, 20)	
+function! ue#window(window_height)
+	let l:height = a:window_height > 0 ? a:window_height : 10
 	let s:ue_buf_id = bufnr(s:ue_buf_name, 1)
 	silent exec 'bo sp'
 	silent exec printf('b %d', s:ue_buf_id)

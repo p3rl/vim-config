@@ -3,14 +3,15 @@
 
 call plug#begin(stdpath('data') . '/plugged')
 Plug 'lifepillar/vim-solarized8'
-Plug 'arcticicestudio/nord-vim'
 Plug 'NLKNguyen/papercolor-theme'
+Plug 'relastle/bluewery.vim'
 Plug 'itchyny/lightline.vim'
 Plug 'tpope/vim-vinegar'
 Plug 'junegunn/fzf'
 Plug 'junegunn/fzf.vim'
 Plug 'godlygeek/tabular'
 Plug 'plasticboy/vim-markdown'
+"Plug 'octol/vim-cpp-enhanced-highlight'
 call plug#end()
 
 exec 'source ' . stdpath('config') . '/p4.vim'
@@ -19,7 +20,7 @@ exec 'source ' . stdpath('config') . '/ue.vim'
 "//////////////////////////////////////////////////////////////////////////////
 " FZF
 let $FZF_DEFAULT_OPTS = '--layout=reverse'
-
+let g:fzf_preview_window = ''
 let g:fzf_layout = { 'window': 'call FloatingFZF()' }
 
 function! FloatingFZF()
@@ -44,17 +45,14 @@ endfunction
 " Theme settings
 
 set termguicolors
-
-"colorscheme nord 
-"let g:nord_italic = 1
-
-set background=dark
+set background=light
+"colorscheme PaperColor
 colorscheme solarized8_high
+"colorscheme bluewery
 let g:solarized_italics=1
 let g:solarized_extra_hi_groups=1
 
 " PaperColor
-"colorscheme PaperColor
 let g:PaperColor_Theme_Options = {
  \	'language': {
  \		'cpp': {
@@ -72,7 +70,7 @@ function! LightlineFileNameHead()
 endfunction
 
 let g:lightline = {
-\	'colorscheme': 'solarized',
+\	'colorscheme': 'solarized8',
 \	'active': {
 \		'left': [ [ 'mode', 'paste' ], [ 'readonly', 'filename', 'modified', 'filenamehead' ] ],
 \	},
@@ -90,7 +88,7 @@ let g:ue_default_projects = [
 
 "//////////////////////////////////////////////////////////////////////////////
 " General settings
-"language en
+language en
 syntax enable
 set encoding=utf-8
 set tabstop=4
@@ -118,7 +116,7 @@ set autoread
 set listchars=tab::.
 set wildignore+=*\\tmp\\*,*.swp,*.zip,*.exe
 "set grepprg=findstr\ /s\ /n
-set grepprg=rg.exe\ -tcpp\ -tcs\ --vimgrep
+set grepprg=rg.exe\ -tcpp\ -tcs\ -tpy\ --vimgrep
 autocmd QuickFixCmdPost *grep* bo cwindow 20
 set scrolloff=5
 let g:netrw_fastbrowse = 0
@@ -128,7 +126,7 @@ set clipboard=unnamedplus
 "//////////////////////////////////////////////////////////////////////////////
 " Commands
 command! -nargs=+ G execute 'silent grep' <q-args>
-command! CopyPath :let @+= expand("%:p")
+command! CopyPath :let @+= expand("%:p") | echo 'Copied -> ' . expand("%:p")
 command! ReloadBuffer :e %
 command! ForceReloadBuffer :e! %
 command! EditVimConfig exec printf(':e %s/init.vim', stdpath('config'))
@@ -144,6 +142,7 @@ noremap <C-Tab> :Buffers<CR>
 noremap <C-p> :FZF .<CR>
 cnoremap <C-space> <Esc>
 nnoremap <F10> :CopyPath <CR>
+nnoremap <silent><C-F10> :P4copydepotpath <CR>
 nnoremap <F11> :ReloadBuffer <CR>
 nnoremap <C-F11> :ForceReloadBuffer <CR>
 nnoremap <C-F12> :EditVimConfig <CR>
@@ -155,6 +154,8 @@ nnoremap <silent> <F1> :copen<CR>
 nnoremap <silent> <S-F1> :close<CR>
 nnoremap n nzz
 nnoremap N Nzz
+
+inoremap <F5> <C-R>=strftime('%c')<CR>
 
 " Mappings - Grep
 nnoremap gw :vim <cword> %<CR>:copen<CR>
