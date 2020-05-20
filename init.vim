@@ -69,14 +69,22 @@ function! LightlineFileNameHead()
 	return expand("%:h")
 endfunction
 
+function! LightlineCurrentWorkingDir()
+	return getcwd()
+endfunction
+
+function! LightlineBuildStatus()
+	return g:ue_build_status_text
+endfunction
+
 let g:lightline = {
 \	'colorscheme': 'solarized8',
 \	'active': {
-\		'left': [ [ 'mode', 'paste' ], [ 'readonly', 'filename', 'modified', 'filenamehead' ] ],
+\		'left': [ [ 'mode', 'paste' ], [ 'cwd', 'readonly', 'filename', 'modified' ], [ 'buildstatus' ] ],
 \	},
 \	'component_function': {
-\		'filenamehead': 'LightlineFileNameHead',
-\		'ue_build_status': 'UEBuildStatus'
+\		'cwd': 'LightlineCurrentWorkingDir',
+\		'buildstatus': 'LightlineBuildStatus'
 \	},
 \ }
 

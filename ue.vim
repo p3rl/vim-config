@@ -63,6 +63,7 @@ function! s:on_ubt_event(job_id, data, event)
 	elseif a:event == 'exit' || a:event == 'stderr'
 		let s:ubt_job_state.job_id = -1
 		let l:num_errors = len(s:ubt_job_state.errors)
+		let g:ue_build_status_text = '[UE]: Build ' . (l:num_errors == 0 ? '[OK]' : '[Errors: ' . l:num_errors . ']')
 		echo '[UE]: Build finished ' . (l:num_errors == 0 ? '[OK]' : '[Errors: ' . l:num_errors . ']')
 	else
 		echo '[UE]: Unknown UBT event'
@@ -173,8 +174,10 @@ function! ue#build_target(...)
 	let s:ubt_job_state.job_id = jobstart(l:job_cmd, l:job_opts)
 
 	if s:ubt_job_state.job_id > 0
+		let g:ue_build_status_text = '[UE]: Building...'
 		echo '[UE]: => ' . fnamemodify(s:ue_ubt_cmd, ':t') . ' ' . l:build_args
 	else
+		let g:ue_build_status_text = '[UE]: Build failed to start'
 		echo '[UE]: => ' . fnamemodify(s:ue_ubt_cmd, ':t') . ' ' . 'failed to start'
 	endif
 endfunction
@@ -188,6 +191,7 @@ endfunction
 
 function! ue#cancel_build()
 	if s:ubt_job_state.job_id > 0
+		let g:ue_build_status_text = '[UE]: Cancelling...'
 		call jobstop(s:ubt_job_state.job_id)
 	endif
 endfunction
