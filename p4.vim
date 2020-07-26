@@ -130,7 +130,7 @@ function! s:p4_copy_depot_path()
 	let l:depot_path = s:p4_depot_path()
 	if len(l:depot_path) > 0
 		let @+= l:depot_path
-		echo 'Copied -> ' . l:depot_path
+		echo l:depot_path
 	endif
 endfunction
 
