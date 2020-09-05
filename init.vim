@@ -2,13 +2,11 @@
 " Plugins
 call plug#begin(stdpath('data') . '/plugged')
 Plug 'lifepillar/vim-solarized8'
-Plug 'NLKNguyen/papercolor-theme'
 Plug 'relastle/bluewery.vim'
-Plug 'morhetz/gruvbox'
 Plug 'sonph/onehalf', {'rtp': 'vim/'}
 Plug 'itchyny/lightline.vim'
 Plug 'tpope/vim-vinegar'
-Plug 'junegunn/fzf'
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
 Plug 'godlygeek/tabular'
 Plug 'plasticboy/vim-markdown'
@@ -18,6 +16,7 @@ call plug#end()
 " Internal plugin(s)
 exec 'source ' . stdpath('config') . '/p4.vim'
 exec 'source ' . stdpath('config') . '/ue.vim'
+exec 'source ' . stdpath('config') . '/agrep.vim'
 "//////////////////////////////////////////////////////////////////////////////
 " General settings
 language en
@@ -50,8 +49,11 @@ set autoread
 set listchars=tab::.
 set wildignore+=*\\tmp\\*,*.swp,*.zip,*.exe
 "set grepprg=findstr\ /s\ /n
-set grepprg=rg.exe\ -tcpp\ -tcs\ -tpy\ -th\ -tini\ -vimgrep
+set grepprg=rg\ --vimgrep
+set grepformat^=%f:%l:%c:%m
+"set grepprg=ugrep
 autocmd QuickFixCmdPost *grep* bo cwindow 20
+"autocmd QuickFixCmdPost *ugrep* bo cwindow 20
 set scrolloff=5
 let g:netrw_fastbrowse = 0
 set mouse=n
@@ -90,6 +92,7 @@ nnoremap <silent> <S-F1> :close<CR>
 nnoremap n nzz
 nnoremap N Nzz
 nnoremap S :%s/\<<C-R>=expand('<cword>')<CR>\>/<C-R>=expand('<cword>')<CR>/g<Left><Left>
+noremap <C-n> :b#<CR>
 vmap < <gv
 vmap > >gv
 inoremap <F5> <C-R>=strftime('%c')<CR>
@@ -97,6 +100,7 @@ inoremap <F5> <C-R>=strftime('%c')<CR>
 " Mappings - Grep
 nnoremap gw :vim <cword> %<CR>:copen<CR>
 nnoremap Gw :G<space><C-R>=expand('<cword>')<CR>
+nnoremap <F2> :Agrep<space><C-R>=expand('<cword>')<CR><CR>
 
 " Mappings - Quickfix
 nnoremap <silent><C-w>u :copen<CR>
@@ -149,7 +153,11 @@ nnoremap <S-F4> :P4revert<CR>:e! %<CR>
 " FZF
 let $FZF_DEFAULT_OPTS = '--layout=reverse'
 let g:fzf_preview_window = ''
+let g:fzf_buffers_jump = 1
+let g:fzf_tags_command = 'ctags -R'
 "let g:fzf_layout = { 'window': 'call FloatingFZF()' }
+let g:fzf_layout = { 'down': '20%' }
+let g:fzf_history_dir = stdpath('data') . '/fzf-history'
 
 function! FloatingFZF()
   let buf = nvim_create_buf(v:false, v:true)
@@ -169,26 +177,20 @@ function! FloatingFZF()
   call nvim_open_win(buf, v:true, opts)
 endfunction
 
-function! RipgrepFzf(query, fullscreen)
-  let command_fmt = 'rg --column --line-number --no-heading --color=always --smart-case -- %s || true'
-  let initial_command = printf(command_fmt, shellescape(a:query))
-  let reload_command = printf(command_fmt, '{q}')
-  let spec = {'options': ['--phony', '--query', a:query, '--bind', 'change:reload:'.reload_command]}
-  call fzf#vim#grep(initial_command, 1, spec, a:fullscreen)
-endfunction
+command! -bang -nargs=* Rg
+  \ call fzf#vim#grep(
+  \   'rg --column --line-number --no-heading --color=always --smart-case -- '.shellescape(<q-args>), 1,
+  \   fzf#vim#grep, <bang>0)
 
-command! -nargs=* -bang RG call RipgrepFzf(<q-args>, <bang>0)
 "//////////////////////////////////////////////////////////////////////////////
 " Theme settings
 set termguicolors
 set background=light
-colorscheme onehalfdark
+colorscheme onehalflight
 "colorscheme solarized8_high
 "colorscheme bluewery
 let g:solarized_italics=1
 let g:solarized_extra_hi_groups=1
-let g:gruvbox_italicize_comments=1
-let g:gruvbox_contrast_dark=1
 
 " PaperColor
 let g:PaperColor_Theme_Options = {
