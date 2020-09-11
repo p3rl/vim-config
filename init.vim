@@ -18,6 +18,28 @@ exec 'source ' . stdpath('config') . '/p4.vim'
 exec 'source ' . stdpath('config') . '/ue.vim'
 exec 'source ' . stdpath('config') . '/agrep.vim'
 "//////////////////////////////////////////////////////////////////////////////
+" Quickfix
+function! s:is_quickfix_window_open()
+	for win_id in range(1, winnr('$'))
+		let l:filetype = getwinvar(win_id, '&filetype')
+		if l:filetype == 'qf'
+			return 1
+		endif
+	endfor
+	return 0
+endfunction
+
+function! s:toggle_quickfix_window(window_height)
+	if (s:is_quickfix_window_open())
+		exec 'cclose'
+	else
+		let l:height = a:window_height > 0 ? a:window_height : 10
+		exec printf('botright copen %d', l:height)
+	endif
+endfunction
+
+command! -nargs=? ToggleQuickFix call s:toggle_quickfix_window(<q-args>)
+"//////////////////////////////////////////////////////////////////////////////
 " General settings
 language en
 syntax enable
@@ -87,8 +109,6 @@ nnoremap <S-F12> :EditGVimConfig <CR>
 nnoremap <A-F12> :so % <CR>
 nnoremap <S-k> kzz
 nnoremap <S-j> jzz
-nnoremap <silent> <F1> :copen<CR>
-nnoremap <silent> <S-F1> :close<CR>
 nnoremap n nzz
 nnoremap N Nzz
 nnoremap S :%s/\<<C-R>=expand('<cword>')<CR>\>/<C-R>=expand('<cword>')<CR>/g<Left><Left>
@@ -103,8 +123,7 @@ nnoremap Gw :G<space><C-R>=expand('<cword>')<CR>
 nnoremap <F2> :Agrep<space><C-R>=expand('<cword>')<CR><CR>
 
 " Mappings - Quickfix
-nnoremap <silent><C-w>u :copen<CR>
-nnoremap <silent><C-w>i :cclose<CR>
+nnoremap <silent><C-w>u :ToggleQuickFix 30<CR>
 nnoremap <silent><A-h> :cfirst<CR>
 nnoremap <silent><A-j> :cn<CR>
 nnoremap <silent><A-k> :cp<CR>
@@ -133,10 +152,10 @@ inoremap [ []<Left>
 noremap <F12> byw:tag<space><C-r>" <CR>
 
 " Mappings - Windows
-nnoremap <silent><A-Up> :resize +1<CR>
-nnoremap <silent><A-Down> :resize -1<CR>
-nnoremap <silent><A-Left> :vertical resize -1<CR>
-nnoremap <silent><A-Right> :vertical resize +1<CR>
+nnoremap <silent><A-Up> :resize +2<CR>
+nnoremap <silent><A-Down> :resize -2<CR>
+nnoremap <silent><A-Left> :vertical resize -2<CR>
+nnoremap <silent><A-Right> :vertical resize +2<CR>
 
 " Mappings - Diff
 nnoremap <C-2> ]c

@@ -41,7 +41,7 @@ function! agrep#run(arg)
 	let s:grep_job_state.job_id = jobstart(l:args, l:job_opts)
 
 	if s:grep_job_state.job_id > 0
-		execute 'botright copen 30'
+		execute 'botright copen 20'
 	else
 		echo 'Error running: ' . string(l:args)
 	endif
