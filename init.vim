@@ -2,8 +2,9 @@
 " Plugins
 call plug#begin(stdpath('data') . '/plugged')
 Plug 'lifepillar/vim-solarized8'
-Plug 'relastle/bluewery.vim'
 Plug 'sonph/onehalf', {'rtp': 'vim/'}
+Plug 'bluz71/vim-nightfly-guicolors'
+Plug 'lifepillar/vim-gruvbox8'
 Plug 'itchyny/lightline.vim'
 Plug 'tpope/vim-vinegar'
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
@@ -11,14 +12,26 @@ Plug 'junegunn/fzf.vim'
 Plug 'godlygeek/tabular'
 Plug 'plasticboy/vim-markdown'
 Plug 'zigford/vim-powershell'
+"Plug 'neovim/nvim-lspconfig'
+Plug 'Rigellute/rigel'
+Plug 'ghifarit53/tokyonight-vim'
 call plug#end()
+
 "//////////////////////////////////////////////////////////////////////////////
 " Internal plugin(s)
 exec 'source ' . stdpath('config') . '/p4.vim'
 exec 'source ' . stdpath('config') . '/ue.vim'
 exec 'source ' . stdpath('config') . '/agrep.vim'
+"exec 'source ' . stdpath('config') . '/buffer.vim'
 "//////////////////////////////////////////////////////////////////////////////
 " Quickfix
+function! s:read_psue_quickfix()
+	call setqflist([])
+	let l:root = getcwd()
+	let l:psue_qf = l:root . '\.psue\quickfix.txt'
+	exec printf('cfile %s', l:psue_qf)
+endfunction
+
 function! s:is_quickfix_window_open()
 	for win_id in range(1, winnr('$'))
 		let l:filetype = getwinvar(win_id, '&filetype')
@@ -39,6 +52,7 @@ function! s:toggle_quickfix_window(window_height)
 endfunction
 
 command! -nargs=? ToggleQuickFix call s:toggle_quickfix_window(<q-args>)
+command! -nargs=0 ReadPSUEQuickFix call s:read_psue_quickfix()
 "//////////////////////////////////////////////////////////////////////////////
 " General settings
 language en
@@ -95,7 +109,10 @@ command! Notes exec ':e c:/git/docs/ue/ue.md'
 "//////////////////////////////////////////////////////////////////////////////
 " Mappings
 tnoremap <Esc> <C-\><C-n>
-inoremap <C-space> <Esc>
+inoremap jj <Esc>
+inoremap JJ <Esc>
+inoremap jk <Esc>
+inoremap JK <Esc>
 noremap <silent> <Esc> :noh<CR>
 noremap <C-Tab> :Buffers<CR>
 noremap <C-p> :FZF .<CR>
@@ -116,6 +133,8 @@ noremap <C-n> :b#<CR>
 vmap < <gv
 vmap > >gv
 inoremap <F5> <C-R>=strftime('%c')<CR>
+inoremap <F9> PRAGMA_DISABLE_OPTIMIZATION
+inoremap <S-F9> PRAGMA_ENABLE_OPTIMIZATION
 
 " Mappings - Grep
 nnoremap gw :vim <cword> %<CR>:copen<CR>
@@ -162,12 +181,17 @@ nnoremap <C-2> ]c
 nnoremap <C-3> [c
 
 " Mappings - Unreal
-nnoremap <F5> :UEbuildtarget<CR>
-nnoremap <C-F5> :UEbuildfile<CR>
-nnoremap <S-F5> :UEcancelbuild<CR>
+"nnoremap <F5> :UEbuildtarget<CR>
+"nnoremap <C-F5> :UEbuildfile<CR>
+"nnoremap <S-F5> :UEcancelbuild<CR>
+
 " Mappings - P4
 nnoremap <F4> :P4edit<CR>
 nnoremap <S-F4> :P4revert<CR>:e! %<CR>
+
+" Mappings - PSUE
+nnoremap <F3> :ReadPSUEQuickFix<CR>
+
 "//////////////////////////////////////////////////////////////////////////////
 " FZF
 let $FZF_DEFAULT_OPTS = '--layout=reverse'
@@ -205,23 +229,31 @@ command! -bang -nargs=* Rg
 " Theme settings
 set termguicolors
 set background=light
-colorscheme onehalflight
+"colorscheme onehalflight
+"colorscheme rigel
+colorscheme gruvbox8_hard
+"colorscheme onehalfdark
+"colorscheme nightfly
 "colorscheme solarized8_high
-"colorscheme bluewery
+"colorscheme tokyonight
 let g:solarized_italics=1
 let g:solarized_extra_hi_groups=1
+let g:tokyonight_style = 'night' " available: night, storm
+let g:tokyonight_enable_italic = 1
 
-" PaperColor
-let g:PaperColor_Theme_Options = {
- \	'language': {
- \		'cpp': {
- \			'highlight_standard_library': 1
- \		},
- \		'c': {
- \			'highlight_builtins' : 1
- \		}
- \	}
-\}
+" Disable function highlighting (affects both C and C++ files)
+let g:cpp_no_function_highlight = 0
+
+" Enable highlighting of C++11 attributes
+let g:cpp_attributes_highlight = 1
+
+" Highlight struct/class member variables (affects both C and C++ files)
+let g:cpp_member_highlight = 0
+
+" Put all standard C and C++ keywords under Vim's highlight group 'Statement'
+" (affects both C and C++ files)
+let g:cpp_simple_highlight = 1
+
 "//////////////////////////////////////////////////////////////////////////////
 " Lightline
 function! LightlineFileNameHead()
@@ -237,7 +269,7 @@ function! LightlineBuildStatus()
 endfunction
 
 let g:lightline = {
-\	'colorscheme': 'onehalfdark',
+\	'colorscheme': 'gruvbox8',
 \	'active': {
 \		'left': [ [ 'readonly', 'filename', 'modified' ], [ 'head', 'buildstatus' ] ],
 \	},
@@ -252,4 +284,21 @@ let g:lightline = {
 let g:ue_default_projects = [
 	\ 'Samples/Games/ShooterGame/ShooterGame.uproject',
 	\ 'FortniteGame/FortniteGame.uproject']
-
+"//////////////////////////////////////////////////////////////////////////////
+" LSP
+"lua <<EOF
+"local nvim_lsp = require('nvim_lsp')
+"nvim_lsp.clangd.setup { 
+"	root_dir = nvim_lsp.util.root_pattern('compile_commands.json'),
+"	cmd = { "clangd", "--background-index" }
+"}
+"EOF
+"nnoremap <silent> <c-]> <cmd>lua vim.lsp.buf.definition()<CR>
+"nnoremap <silent> K     <cmd>lua vim.lsp.buf.hover()<CR>
+"nnoremap <silent> gD    <cmd>lua vim.lsp.buf.implementation()<CR>
+"nnoremap <silent> <c-k> <cmd>lua vim.lsp.buf.signature_help()<CR>
+"nnoremap <silent> 1gD   <cmd>lua vim.lsp.buf.type_definition()<CR>
+"nnoremap <silent> gr    <cmd>lua vim.lsp.buf.references()<CR>
+"nnoremap <silent> g0    <cmd>lua vim.lsp.buf.document_symbol()<CR>
+"nnoremap <silent> gW    <cmd>lua vim.lsp.buf.workspace_symbol()<CR>
+"nnoremap <silent> gd    <cmd>lua vim.lsp.buf.declaration()<CR>
